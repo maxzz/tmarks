@@ -5,6 +5,7 @@ import { appSettings, WelcomeTransition } from "@/store/1-ui-settings";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
+import { Switch } from "@/ui/shadcn/switch";
 import { isOpenOptionsDialogAtom } from "./9-types-options";
 
 export function OptionsDialog() {
@@ -24,6 +25,7 @@ export function OptionsDialog() {
 
                 <div className="px-4 py-4 flex flex-col gap-4">
                     <WelcomeTransitionSelect />
+                    <ShowItemUrlsSwitch />
                 </div>
             </DialogContent>
         </Dialog>
@@ -55,6 +57,21 @@ function WelcomeTransitionSelect() {
                     )}
                 </SelectContent>
             </Select>
+        </div>
+    );
+}
+
+function ShowItemUrlsSwitch() {
+    const { showItemUrls } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <Label htmlFor={id}>
+                Show URLs for bookmark items
+            </Label>
+
+            <Switch id={id} checked={showItemUrls} onCheckedChange={(checked) => { appSettings.showItemUrls = checked; }} />
         </div>
     );
 }
