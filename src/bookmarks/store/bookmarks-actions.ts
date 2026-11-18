@@ -259,9 +259,9 @@ export const navigateTreeKeyAtom = atom(null, (get, set, key: string) => {
 //---------------------------------------------------------------------------
 // Editing (F2)
 
-/** Opens the edit dialog for the selected item, with its current name and URL. */
-export const startEditSelectedAtom = atom(null, (get, set) => {
-    const node = get(selectedNodeAtom);
+/** Opens the edit dialog for one item, with its current name and URL. The selection does not change. */
+export const startEditAtom = atom(null, (get, set, id: BookmarkId) => {
+    const node = get(bookmarkNodesAtom)[id];
     if (!node || get(editingIdAtom) !== null) {
         return;
     }
@@ -272,6 +272,14 @@ export const startEditSelectedAtom = atom(null, (get, set) => {
         url: node.kind === "link" ? node.url : "",
     });
     set(editingIdAtom, node.id);
+});
+
+/** Opens the edit dialog for the selected item (F2). */
+export const startEditSelectedAtom = atom(null, (get, set) => {
+    const id = get(selectedIdAtom);
+    if (id !== null) {
+        set(startEditAtom, id);
+    }
 });
 
 export const cancelEditAtom = atom(null, (_get, set) => {
@@ -305,14 +313,22 @@ export const commitEditAtom = atom(null, (get, set) => {
 //---------------------------------------------------------------------------
 // Deleting (Delete key, or the selection's context)
 
-/** Asks for confirmation before deleting the selected items. Deleting a folder deletes everything inside it. */
-export const requestDeleteSelectedAtom = atom(null, (get, set) => {
+/**
+ * Asks for confirmation before deleting the given items. Deleting a folder deletes everything inside it,
+ * so an item that sits inside another given item is left out of the list.
+ */
+export const requestDeleteAtom = atom(null, (get, set, items: ReadonlySet<BookmarkId>) => {
     const nodes = get(bookmarkNodesAtom);
-    const ids = topmostSelectedIds(nodes, get(selectedIdsAtom));
+    const ids = topmostSelectedIds(nodes, items);
     if (ids.length > 0) {
         set(pendingDeleteIdsAtom, ids);
         set(deleteDialogOpenAtom, true);
     }
+});
+
+/** Asks for confirmation before deleting the selected items (Delete key). */
+export const requestDeleteSelectedAtom = atom(null, (get, set) => {
+    set(requestDeleteAtom, get(selectedIdsAtom));
 });
 
 export const cancelDeleteAtom = atom(null, (_get, set) => {

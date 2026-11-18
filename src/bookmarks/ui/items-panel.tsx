@@ -5,6 +5,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "../model/bookmark-types";
 import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "../store/bookmarks-atoms";
 import { clickItemAtom } from "../store/bookmarks-actions";
+import { BookmarkContextMenu } from "../context-menu/bookmark-context-menu";
 import { ItemPreview } from "./item-preview";
 import { openBookmarkLink, revealWhenSelected } from "./bookmark-ui-helpers";
 
@@ -69,35 +70,37 @@ function ItemRow({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const url = node.kind === "link" ? node.url : null;
 
     return (
-        <div
-            role="option"
-            aria-selected={isSelected}
-            tabIndex={-1}
-            ref={revealWhenSelected(isSelected)}
-            className={classNames(
-                "px-2 py-1.5 hover:bg-muted outline-none rounded-sm flex items-center gap-3 cursor-default",
-                isSelected && "bg-primary/15 hover:bg-primary/15",
-            )}
-            onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
-            onDoubleClick={() => openItem(node)}
-        >
-            <ItemPreview node={node} className="size-4 rounded-sm" />
+        <BookmarkContextMenu id={id} scope="items">
+            <div
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={-1}
+                ref={revealWhenSelected(isSelected)}
+                className={classNames(
+                    "px-2 py-1.5 hover:bg-muted outline-none rounded-sm flex items-center gap-3 cursor-default",
+                    isSelected && "bg-primary/15 hover:bg-primary/15",
+                )}
+                onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
+                onDoubleClick={() => openItem(node)}
+            >
+                <ItemPreview node={node} className="size-4 rounded-sm" />
 
-            {showUrl
-                ? (
-                    <div className="min-w-0 flex-1 flex flex-col">
-                        <span className="text-sm truncate">{title}</span>
-                        {url !== null && <span className="text-[0.7rem] text-muted-foreground truncate">{url}</span>}
-                    </div>
-                )
-                : (
-                    <div className="min-w-0 flex-1 flex items-center gap-2">
-                        <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>{title}</span>
-                        {isSelected && url && <span className="min-w-0 flex-1 text-[0.7rem] text-muted-foreground truncate">{url}</span>}
-                    </div>
-                )
-            }
-        </div>
+                {showUrl
+                    ? (
+                        <div className="min-w-0 flex-1 flex flex-col">
+                            <span className="text-sm truncate">{title}</span>
+                            {url !== null && <span className="text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                        </div>
+                    )
+                    : (
+                        <div className="min-w-0 flex-1 flex items-center gap-2">
+                            <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>{title}</span>
+                            {isSelected && url && <span className="min-w-0 flex-1 text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                        </div>
+                    )
+                }
+            </div>
+        </BookmarkContextMenu>
     );
 }
 
@@ -112,23 +115,25 @@ function ItemCard({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     }
 
     return (
-        <div
-            role="option"
-            aria-selected={isSelected}
-            tabIndex={-1}
-            ref={revealWhenSelected(isSelected)}
-            className={classNames(
-                "p-2 text-center hover:bg-muted border border-transparent outline-none rounded-md flex flex-col items-center gap-2 cursor-default",
-                isSelected && "bg-primary/15 hover:bg-primary/15 border-primary/40",
-            )}
-            onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
-            onDoubleClick={() => openItem(node)}
-        >
-            <ItemPreview node={node} className="size-4 rounded-sm" />
+        <BookmarkContextMenu id={id} scope="items">
+            <div
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={-1}
+                ref={revealWhenSelected(isSelected)}
+                className={classNames(
+                    "p-2 text-center hover:bg-muted border border-transparent outline-none rounded-md flex flex-col items-center gap-2 cursor-default",
+                    isSelected && "bg-primary/15 hover:bg-primary/15 border-primary/40",
+                )}
+                onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
+                onDoubleClick={() => openItem(node)}
+            >
+                <ItemPreview node={node} className="size-4 rounded-sm" />
 
-            <span className="w-full text-xs line-clamp-2 break-words">{node.title || "(untitled)"}</span>
-            {node.kind === "link" && (showUrl || isSelected) && <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>}
-        </div>
+                <span className="w-full text-xs line-clamp-2 break-words">{node.title || "(untitled)"}</span>
+                {node.kind === "link" && (showUrl || isSelected) && <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>}
+            </div>
+        </BookmarkContextMenu>
     );
 }
 
