@@ -1,5 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
+import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "../model/bookmark-types";
 import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "../store/bookmarks-atoms";
 import { clickItemAtom } from "../store/bookmarks-actions";
@@ -9,6 +11,7 @@ import { openBookmarkLink, revealWhenSelected } from "./bookmark-ui-helpers";
 export function ItemsPanel() {
     const viewMode = useAtomValue(viewModeAtom);
     const itemIds = useAtomValue(currentItemIdsAtom);
+    const { showItemUrls } = useSnapshot(appSettings);
 
     return (
         <div className="h-full min-h-0 flex flex-col">
@@ -20,12 +23,12 @@ export function ItemsPanel() {
                     : viewMode === "grid"
                         ? (
                             <div role="listbox" aria-label="Items" aria-multiselectable="true" className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2">
-                                {itemIds.map((id) => <ItemCard key={id} id={id} />)}
+                                {itemIds.map((id) => <ItemCard key={id} id={id} showUrl={showItemUrls} />)}
                             </div>
                         )
                         : (
                             <div role="listbox" aria-label="Items" aria-multiselectable="true" className="select-none flex flex-col gap-px">
-                                {itemIds.map((id) => <ItemRow key={id} id={id} />)}
+                                {itemIds.map((id) => <ItemRow key={id} id={id} showUrl={showItemUrls} />)}
                             </div>
                         )
                 }
@@ -49,7 +52,11 @@ function EmptyFolder() {
     return <div className="h-full text-muted-foreground grid place-items-center">This folder is empty.</div>;
 }
 
-function ItemRow({ id }: { id: BookmarkId; }) {
+/**
+ * One row of the list. With `showUrl` the URL sits under the name. Otherwise the row shows only the name,
+ * and the URL appears to the right of the name while the row is selected.
+ */
+function ItemRow({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
@@ -57,6 +64,9 @@ function ItemRow({ id }: { id: BookmarkId; }) {
     if (!node) {
         return null;
     }
+
+    const title = node.title || "(untitled)";
+    const url = node.kind === "link" ? node.url : null;
 
     return (
         <div
@@ -71,17 +81,28 @@ function ItemRow({ id }: { id: BookmarkId; }) {
             onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
             onDoubleClick={() => openItem(node)}
         >
-            <ItemPreview node={node} className="size-7 rounded-sm" />
+            <ItemPreview node={node} className="size-4 rounded-sm" />
 
-            <div className="min-w-0 flex-1 flex flex-col">
-                <span className="text-sm truncate">{node.title || "(untitled)"}</span>
-                {node.kind === "link" && <span className="text-[0.7rem] text-muted-foreground truncate">{node.url}</span>}
-            </div>
+            {showUrl
+                ? (
+                    <div className="min-w-0 flex-1 flex flex-col">
+                        <span className="text-sm truncate">{title}</span>
+                        {url !== null && <span className="text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                    </div>
+                )
+                : (
+                    <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>{title}</span>
+                        {isSelected && url && <span className="min-w-0 flex-1 text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                    </div>
+                )
+            }
         </div>
     );
 }
 
-function ItemCard({ id }: { id: BookmarkId; }) {
+/** A grid card. Without `showUrl` the URL is shown below the name only while the card is selected. */
+function ItemCard({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
@@ -103,10 +124,10 @@ function ItemCard({ id }: { id: BookmarkId; }) {
             onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
             onDoubleClick={() => openItem(node)}
         >
-            <ItemPreview node={node} className="size-14 rounded-sm" />
+            <ItemPreview node={node} className="size-4 rounded-sm" />
 
             <span className="w-full text-xs line-clamp-2 break-words">{node.title || "(untitled)"}</span>
-            {node.kind === "link" && <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>}
+            {node.kind === "link" && (showUrl || isSelected) && <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>}
         </div>
     );
 }

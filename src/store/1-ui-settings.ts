@@ -23,6 +23,7 @@ export interface AppSettings {
     showWelcome: boolean;        // Show the Welcome page at startup
     welcomeTransition: WelcomeTransition; // Transition between the Welcome and main pages
     showFooter: boolean;         // Show footer in main layout
+    showItemUrls: boolean;       // Bookmarks items panel: show each item's URL under its name (otherwise only the selected item shows its URL)
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
 }
@@ -32,6 +33,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     showWelcome: true,
     welcomeTransition: WelcomeTransition.quadrants,
     showFooter: true,
+    showItemUrls: false,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
 };
