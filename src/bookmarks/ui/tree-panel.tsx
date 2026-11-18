@@ -14,7 +14,7 @@ export function TreePanel() {
     const rootIds = useAtomValue(rootFolderIdsAtom);
 
     return (
-        <div role="tree" aria-label="Bookmarks" className="select-none py-1 h-full overflow-auto">
+        <div role="tree" aria-label="Bookmarks" className="py-1 h-full select-none overflow-auto">
             {rootIds.map((id) => (
                 <TreeRow key={id} id={id} depth={0} />
             ))}

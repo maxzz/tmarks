@@ -18,7 +18,7 @@ export function ItemsPanel() {
         <div className="h-full min-h-0 flex flex-col">
             <ItemsPanelHeader count={itemIds.length} />
 
-            <div className="p-2 min-h-0 overflow-auto flex-1">
+            <div className="flex-1 p-2 min-h-0 overflow-auto">
                 {itemIds.length === 0
                     ? <EmptyFolder />
                     : viewMode === "grid"
@@ -87,15 +87,15 @@ function ItemRow({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
 
                 {showUrl
                     ? (
-                        <div className="min-w-0 flex-1 flex flex-col">
+                        <div className="flex-1 min-w-0 flex flex-col">
                             <span className="text-sm truncate">{title}</span>
                             {url !== null && <span className="text-[0.7rem] text-muted-foreground truncate">{url}</span>}
                         </div>
                     )
                     : (
-                        <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
                             <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>{title}</span>
-                            {isSelected && url && <span className="min-w-0 flex-1 text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                            {isSelected && url && <span className="flex-1 min-w-0 text-[0.7rem] text-muted-foreground truncate">{url}</span>}
                         </div>
                     )
                 }
@@ -130,7 +130,7 @@ function ItemCard({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
             >
                 <ItemPreview node={node} className="size-4 rounded-sm" />
 
-                <span className="w-full text-xs line-clamp-2 break-words">{node.title || "(untitled)"}</span>
+                <span className="w-full text-xs line-clamp-2 wrap-break-word">{node.title || "(untitled)"}</span>
                 {node.kind === "link" && (showUrl || isSelected) && <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>}
             </div>
         </BookmarkContextMenu>
