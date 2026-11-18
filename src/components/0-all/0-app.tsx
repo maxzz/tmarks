@@ -1,7 +1,7 @@
 import { Toaster } from '@/ui/shadcn/sonner';
 import { DropItDoc } from '@/ui/local-ui/6-dnd/ui-drop-it-doc';
 import { doSetFilesFrom_Dnd_Atom } from '@/ui/local-ui/6-dnd/8-dnd-atoms';
-import { BookmarkDialogs } from '@/bookmarks/ui/bookmark-dialogs';
+import { BookmarkDialogs } from '@/components/2-main/bookmarks/ui/bookmark-dialogs';
 import { AllDialogs } from './1-globals';
 import { AppPages } from '../5-welcome';
 import { Header } from '../1-header';

@@ -1,5 +1,5 @@
-import { AppMenuButton } from "@/bookmarks/ui/app-menu-button";
-import { ViewModeToggle } from "@/bookmarks/ui/view-mode-toggle";
+import { AppMenuButton } from "@/components/2-main/bookmarks/ui/app-menu-button";
+import { ViewModeToggle } from "@/components/2-main/bookmarks/ui/view-mode-toggle";
 import { ButtonOptions } from "./7-btn-options";
 import { ButtonThemeToggle } from "./8-btn-theme-toggle";
 
