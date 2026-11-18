@@ -10,7 +10,7 @@ export function ItemPreview({ node, className }: { node: BookmarkNode; className
     const icon = node.kind === "link" ? node.icon : null;
 
     return (
-        <span className={classNames("relative shrink-0 text-muted-foreground overflow-hidden grid place-items-center", className)} aria-hidden>
+        <span className={classNames("shrink-0 relative text-muted-foreground overflow-hidden grid place-items-center", className)} aria-hidden>
             {node.kind === "folder"
                 ? <Folder className="size-[70%] fill-muted-foreground/20" strokeWidth={1.5} />
                 : <Globe className="size-[70%]" strokeWidth={1.5} />
