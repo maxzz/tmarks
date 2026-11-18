@@ -8,6 +8,7 @@ import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type Bookmar
 import {
     bookmarkNodesAtom,
     bookmarkRootIdsAtom,
+    childFolderIdsAtom,
     clearDialogOpenAtom,
     currentItemIdsAtom,
     deleteDialogOpenAtom,
@@ -215,7 +216,9 @@ export const navigateTreeKeyAtom = atom(null, (get, set, key: string) => {
     const visible = get(visibleTreeIdsAtom);
     const expanded = get(expandedIdsAtom);
     const selected = get(selectedNodeAtom);
-    const index = selected ? visible.indexOf(selected.id) : -1;
+    // A selected link is not in the tree, so the arrows move from the folder that contains it.
+    const anchorId = selected?.kind === "link" ? selected.parentId : (selected?.id ?? null);
+    const index = anchorId === null ? -1 : visible.indexOf(anchorId);
 
     const moveBy = (delta: number) => {
         if (visible.length === 0) {
@@ -235,7 +238,7 @@ export const navigateTreeKeyAtom = atom(null, (get, set, key: string) => {
             moveBy(-1);
             break;
         case "ArrowRight":
-            if (selected?.kind === "folder") {
+            if (selected?.kind === "folder" && get(childFolderIdsAtom(selected.id)).length > 0) {
                 if (expanded.has(selected.id)) {
                     moveBy(1);
                 } else {

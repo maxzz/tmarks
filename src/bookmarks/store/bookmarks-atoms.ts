@@ -15,6 +15,12 @@ export const bookmarkRootIdsAtom = atom<BookmarkId[]>(stored.rootIds);
 
 export const hasBookmarksAtom = atom((get) => get(bookmarkRootIdsAtom).length > 0);
 
+/** Top-level folders, which are the roots of the tree. Top-level links are listed only in the right panel. */
+export const rootFolderIdsAtom = atom((get): BookmarkId[] => {
+    const nodes = get(bookmarkNodesAtom);
+    return get(bookmarkRootIdsAtom).filter((id) => nodes[id]?.kind === "folder");
+});
+
 //---------------------------------------------------------------------------
 // UI state
 
@@ -67,6 +73,13 @@ export const isExpandedAtom = atomFamily((id: BookmarkId) => atom((get) => get(e
 
 export const isSelectedAtom = atomFamily((id: BookmarkId) => atom((get) => get(selectedIdsAtom).has(id)));
 
+/** Sub-folders of a folder, in file order. The tree shows only these; links are listed in the right panel. */
+export const childFolderIdsAtom = atomFamily((id: BookmarkId) => atom((get): BookmarkId[] => {
+    const nodes = get(bookmarkNodesAtom);
+    const node = nodes[id];
+    return node?.kind === "folder" ? node.childIds.filter((childId) => nodes[childId]?.kind === "folder") : [];
+}));
+
 //---------------------------------------------------------------------------
 // Derived
 
@@ -107,7 +120,7 @@ export const currentItemIdsAtom = atom((get): BookmarkId[] => {
     return folder?.kind === "folder" ? folder.childIds : [];
 });
 
-/** Ids in the order the tree shows them, skipping the children of collapsed folders. */
+/** Folder ids in the order the tree shows them, skipping the children of collapsed folders and all links. */
 export const visibleTreeIdsAtom = atom((get): BookmarkId[] => {
     const nodes = get(bookmarkNodesAtom);
     const expanded = get(expandedIdsAtom);
@@ -115,9 +128,12 @@ export const visibleTreeIdsAtom = atom((get): BookmarkId[] => {
 
     const walk = (ids: BookmarkId[]) => {
         for (const id of ids) {
-            out.push(id);
             const node = nodes[id];
-            if (node?.kind === "folder" && expanded.has(id)) {
+            if (node?.kind !== "folder") {
+                continue;
+            }
+            out.push(id);
+            if (expanded.has(id)) {
                 walk(node.childIds);
             }
         }

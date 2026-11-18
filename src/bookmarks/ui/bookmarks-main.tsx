@@ -57,13 +57,13 @@ export function BookmarksMain() {
                             appSettings.panelSizes = { ...appSettings.panelSizes, horizontal: layout };
                         }}
                     >
-                        <ResizablePanel id="left" minSize={15}>
+                        <ResizablePanel id="left" minSize={15} className="min-w-0 overflow-hidden">
                             <TreePanel />
                         </ResizablePanel>
 
                         <ResizableHandle withHandle />
 
-                        <ResizablePanel id="right" minSize={30}>
+                        <ResizablePanel id="right" minSize={30} className="min-w-0 overflow-hidden">
                             <ItemsPanel />
                         </ResizablePanel>
                     </ResizablePanelGroup>

@@ -3,13 +3,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { classNames } from "@/utils";
 import { type BookmarkId } from "../model/bookmark-types";
-import { bookmarkRootIdsAtom, isExpandedAtom, isSelectedAtom, nodeAtom } from "../store/bookmarks-atoms";
+import { childFolderIdsAtom, isExpandedAtom, isSelectedAtom, nodeAtom, rootFolderIdsAtom } from "../store/bookmarks-atoms";
 import { clickItemAtom, toggleExpandedAtom } from "../store/bookmarks-actions";
 import { ItemPreview } from "./item-preview";
-import { openBookmarkLink, revealWhenSelected } from "./bookmark-ui-helpers";
+import { revealWhenSelected } from "./bookmark-ui-helpers";
 
+/** The folder tree. Only folders appear here; links are listed in the right panel. */
 export function TreePanel() {
-    const rootIds = useAtomValue(bookmarkRootIdsAtom);
+    const rootIds = useAtomValue(rootFolderIdsAtom);
 
     return (
         <div role="tree" aria-label="Bookmarks" className="select-none py-1 h-full overflow-auto">
@@ -22,23 +23,24 @@ export function TreePanel() {
 
 function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
     const node = useAtomValue(nodeAtom(id));
+    const childFolderIds = useAtomValue(childFolderIdsAtom(id));
     const isExpanded = useAtomValue(isExpandedAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
 
-    if (!node) {
+    if (node?.kind !== "folder") {
         return null;
     }
 
-    const isFolder = node.kind === "folder";
+    const hasChildren = childFolderIds.length > 0;
 
     return (
         <div role="none">
             <div
                 role="treeitem"
                 aria-selected={isSelected}
-                aria-expanded={isFolder ? isExpanded : undefined}
+                aria-expanded={hasChildren ? isExpanded : undefined}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 title={node.title}
@@ -48,13 +50,8 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                     isSelected && "text-foreground bg-primary/15",
                 )}
                 onClick={(e) => clickItem({ id, scope: "tree", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
-                onDoubleClick={() => {
-                    if (node.kind === "link") {
-                        openBookmarkLink(node.url);
-                    }
-                }}
             >
-                {isFolder
+                {hasChildren
                     ? (
                         <span
                             className="shrink-0 size-4 hover:bg-foreground/10 rounded-sm grid place-items-center"
@@ -74,7 +71,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                 <span className="min-w-0 truncate">{node.title || "(untitled)"}</span>
             </div>
 
-            {isFolder && (
+            {hasChildren && (
                 <AnimatePresence initial={false}>
                     {isExpanded && (
                         <motion.div
@@ -86,7 +83,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.18, ease: "easeOut" }}
                         >
-                            {node.childIds.map((childId) => (
+                            {childFolderIds.map((childId) => (
                                 <TreeRow key={childId} id={childId} depth={depth + 1} />
                             ))}
                         </motion.div>

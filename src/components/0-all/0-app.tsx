@@ -16,7 +16,7 @@ export function App() {
         <BookmarkDialogs />
 
         <AppPages>
-            <main className="h-dvh text-xs bg-background overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
+            <main className="h-dvh text-xs bg-background overflow-hidden grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto]">
                 <Header />
                 <MainBody />
                 <Section3_Footer />
