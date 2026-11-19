@@ -44,6 +44,9 @@ export const selectedIdAtom = atom<BookmarkId | null>(null);
 /** Every selected item. Plain click selects one item; Ctrl/Cmd-click and Shift-click add to it. */
 export const selectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
 
+/** Which panel the last selection came from. The tree highlights only selections made in the tree, so a click in the right panel does not show up in the tree. */
+export const selectionPanelAtom = atom<"tree" | "items">("tree");
+
 /** Folders that are open in the tree. The top-level folders start open. */
 export const expandedIdsAtom = atom<ReadonlySet<BookmarkId>>(topLevelFolderIds(stored));
 export const viewModeAtom = atom<ViewMode>("list");
@@ -96,6 +99,13 @@ export const isExpandedAtom = atomFamily(
 export const isSelectedAtom = atomFamily(
     (id: BookmarkId) => atom(
         (get) => get(selectedIdsAtom).has(id)
+    )
+);
+
+/** Highlight in the tree: selected, and the selection was made in the tree. */
+export const isTreeSelectedAtom = atomFamily(
+    (id: BookmarkId) => atom(
+        (get) => get(selectionPanelAtom) === "tree" && get(selectedIdsAtom).has(id)
     )
 );
 

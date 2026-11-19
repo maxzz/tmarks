@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { classNames } from "@/utils";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
-import { childFolderIdsAtom, isExpandedAtom, isSelectedAtom, nodeAtom, rootFolderIdsAtom } from "@/store/store/a-bookmarks-atoms";
+import { childFolderIdsAtom, isExpandedAtom, isTreeSelectedAtom, nodeAtom, rootFolderIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, toggleExpandedAtom } from "@/store/store/a-bookmarks-actions";
 import { BookmarkContextMenu } from "../3-context-menu/bookmark-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
@@ -28,7 +28,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
     const node = useAtomValue(nodeAtom(id));
     const childFolderIds = useAtomValue(childFolderIdsAtom(id));
     const isExpanded = useAtomValue(isExpandedAtom(id));
-    const isSelected = useAtomValue(isSelectedAtom(id));
+    const isSelected = useAtomValue(isTreeSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
 
