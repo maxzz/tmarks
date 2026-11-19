@@ -1,6 +1,7 @@
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkLink, type BookmarkNode, type BookmarkNodes } from "./store/9-bookmark-types";
 import { addIcon } from "./io/icon-id";
+import { logDocumentStats } from "./io/document-stats";
 
 /** The bookmark tree. Links refer to icons by id. */
 const TREE_KEY = "tm-tmarks-tree-v2";
@@ -20,7 +21,9 @@ export function readStoredBookmarks(): BookmarkDocument {
         if (raw) {
             const parsed = JSON.parse(raw) as Partial<BookmarkDocument> | null;
             if (parsed && isObject(parsed.nodes) && Array.isArray(parsed.rootIds)) {
-                return { nodes: parsed.nodes, rootIds: parsed.rootIds, icons: readStoredIcons() };
+                const doc: BookmarkDocument = { nodes: parsed.nodes, rootIds: parsed.rootIds, icons: readStoredIcons() };
+                logDocumentStats("restored from localStorage", doc);
+                return doc;
             }
         }
 

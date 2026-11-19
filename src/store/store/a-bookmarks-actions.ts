@@ -2,6 +2,7 @@ import { atom, getDefaultStore, type Getter, type Setter } from "jotai";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { uuid } from "@/utils/uuid";
 import { downloadTextFile } from "../io/download-text-file";
+import { logDocumentStats } from "../io/document-stats";
 import { parseNetscapeBookmarks } from "../io/netscape-parse";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
@@ -65,10 +66,13 @@ export const importBookmarkFilesAtom = atom(
 
         let entries: PendingImportFile[];
         try {
-            entries = await Promise.all(candidates.map(async (file) => ({
-                name: file.name,
-                doc: parseNetscapeBookmarks(await file.text()),
-            })));
+            entries = await Promise.all(candidates.map(async (file) => {
+                const html = await file.text();
+                const started = performance.now();
+                const doc = parseNetscapeBookmarks(html);
+                logDocumentStats(`imported "${file.name}" (parsed in ${(performance.now() - started).toFixed(1)} ms)`, doc);
+                return { name: file.name, doc };
+            }));
         } catch (e) {
             console.error("Failed to import bookmarks", e);
             notice.error(`Failed to read ${fileList}.`);
