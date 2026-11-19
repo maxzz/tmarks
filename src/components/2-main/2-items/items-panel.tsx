@@ -102,7 +102,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                     )
                     : (
                         <div className="flex-1 min-w-0 flex items-center gap-2">
-                            <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>
+                            <span className={classNames("min-w-0 text-xs truncate", isSelected && url && "max-w-[60%]")}>
                                 {title}
                             </span>
                             {isSelected && url && (

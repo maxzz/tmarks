@@ -13,7 +13,7 @@ export function OptionsDialog() {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-sm! gap-0!" modal>
+            <DialogContent className="p-0! max-w-sm! gap-0!">
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Options
