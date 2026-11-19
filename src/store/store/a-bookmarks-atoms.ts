@@ -1,7 +1,7 @@
 import { atom, getDefaultStore } from "jotai";
 import { atomFamily } from "jotai-family";
 
-import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
+import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
 import { readStoredBookmarks, writeStoredBookmarks } from "../3-local-storage-items";
 
 export type ViewMode = "list" | "grid";
@@ -13,6 +13,9 @@ const stored = readStoredBookmarks();
 
 export const bookmarkNodesAtom = atom<BookmarkNodes>(stored.nodes);
 export const bookmarkRootIdsAtom = atom<BookmarkId[]>(stored.rootIds);
+
+/** The icon cache. Links refer to an entry by id, so an icon shared by many bookmarks is kept once. */
+export const bookmarkIconsAtom = atom<BookmarkIcons>(stored.icons);
 
 export const hasBookmarksAtom = atom(
     (get) => get(bookmarkRootIdsAtom).length > 0
@@ -87,6 +90,19 @@ export const isExpandedAtom = atomFamily(
 export const isSelectedAtom = atomFamily(
     (id: BookmarkId) => atom(
         (get) => get(selectedIdsAtom).has(id)
+    )
+);
+
+/** The icon image of an item: the cached icon for a link, `null` for folders and for links without one. */
+export const itemIconAtom = atomFamily(
+    (id: BookmarkId) => atom(
+        (get): string | null => {
+            const node = get(bookmarkNodesAtom)[id];
+            if (node?.kind !== "link" || node.iconId === null) {
+                return null;
+            }
+            return get(bookmarkIconsAtom)[node.iconId] ?? null;
+        }
     )
 );
 
@@ -198,6 +214,7 @@ const persistedDocumentAtom = atom(
     (get): BookmarkDocument => ({
         nodes: get(bookmarkNodesAtom),
         rootIds: get(bookmarkRootIdsAtom),
+        icons: get(bookmarkIconsAtom),
     })
 );
 

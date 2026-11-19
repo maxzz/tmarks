@@ -4,8 +4,9 @@ import { uuid } from "@/utils/uuid";
 import { downloadTextFile } from "../io/download-text-file";
 import { parseNetscapeBookmarks } from "../io/netscape-parse";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
-import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
+import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
 import {
+    bookmarkIconsAtom,
     bookmarkNodesAtom,
     bookmarkRootIdsAtom,
     childFolderIdsAtom,
@@ -38,6 +39,7 @@ export const loadBookmarkDocumentAtom = atom(
     (_get, set, doc: BookmarkDocument) => {
         set(bookmarkNodesAtom, doc.nodes);
         set(bookmarkRootIdsAtom, doc.rootIds);
+        set(bookmarkIconsAtom, doc.icons);
         set(selectedIdAtom, null);
         set(selectedIdsAtom, new Set());
         set(pinnedFolderAtom, null);
@@ -106,12 +108,13 @@ export const appendImportAtom = atom(
     null,
     (get, set) => {
         const pending = get(pendingImportAtom);
-        const current: BookmarkDocument = { nodes: get(bookmarkNodesAtom), rootIds: get(bookmarkRootIdsAtom) };
+        const current: BookmarkDocument = { nodes: get(bookmarkNodesAtom), rootIds: get(bookmarkRootIdsAtom), icons: get(bookmarkIconsAtom) };
         const { doc, folderIds } = appendImportedFolders(current, pending, Math.floor(Date.now() / 1000));
 
         set(importDialogOpenAtom, false);
         set(bookmarkNodesAtom, doc.nodes);
         set(bookmarkRootIdsAtom, doc.rootIds);
+        set(bookmarkIconsAtom, doc.icons);
 
         if (folderIds.length > 0) {
             set(selectItemAtom, folderIds[0]);
@@ -155,7 +158,7 @@ export const saveBookmarksAtom = atom(
             return;
         }
 
-        const html = serializeNetscapeBookmarks({ nodes: get(bookmarkNodesAtom), rootIds });
+        const html = serializeNetscapeBookmarks({ nodes: get(bookmarkNodesAtom), rootIds, icons: get(bookmarkIconsAtom) });
         const stamp = new Date().toISOString().slice(0, 10);
         downloadTextFile(`bookmarks-${stamp}.html`, html, "text/html");
     }
@@ -441,6 +444,7 @@ export const confirmDeleteAtom = atom(
 
         set(bookmarkNodesAtom, nodes);
         set(bookmarkRootIdsAtom, rootIds);
+        set(bookmarkIconsAtom, keepReferencedIcons(nodes, get(bookmarkIconsAtom)));
         set(selectedIdAtom, null);
         set(selectedIdsAtom, new Set());
         set(pinnedFolderAtom, null);
@@ -469,7 +473,7 @@ export const confirmClearAtom = atom(
     null,
     (_get, set) => {
         set(clearDialogOpenAtom, false);
-        set(loadBookmarkDocumentAtom, { nodes: {}, rootIds: [] });
+        set(loadBookmarkDocumentAtom, { nodes: {}, rootIds: [], icons: {} });
         notice.info("All bookmarks were cleared.");
     }
 );
@@ -484,11 +488,24 @@ function isBookmarkHtmlFile(file: File): boolean {
 function mergeBookmarkDocuments(docs: BookmarkDocument[]): BookmarkDocument {
     const nodes: BookmarkNodes = {};
     const rootIds: BookmarkId[] = [];
+    const icons: BookmarkIcons = {};
     for (const doc of docs) {
         Object.assign(nodes, doc.nodes);
         rootIds.push(...doc.rootIds);
+        Object.assign(icons, doc.icons);
     }
-    return { nodes, rootIds };
+    return { nodes, rootIds, icons };
+}
+
+/** The icons that at least one link still refers to. Returns `icons` itself when nothing would be dropped. */
+function keepReferencedIcons(nodes: BookmarkNodes, icons: BookmarkIcons): BookmarkIcons {
+    const kept: BookmarkIcons = {};
+    for (const node of Object.values(nodes)) {
+        if (node.kind === "link" && node.iconId !== null && node.iconId in icons) {
+            kept[node.iconId] = icons[node.iconId];
+        }
+    }
+    return Object.keys(kept).length === Object.keys(icons).length ? icons : kept;
 }
 
 /**
@@ -498,12 +515,14 @@ function mergeBookmarkDocuments(docs: BookmarkDocument[]): BookmarkDocument {
 function appendImportedFolders(current: BookmarkDocument, files: PendingImportFile[], now: number): { doc: BookmarkDocument; folderIds: BookmarkId[]; } {
     const nodes: BookmarkNodes = { ...current.nodes };
     const rootIds = [...current.rootIds];
+    const icons: BookmarkIcons = { ...current.icons };
     const folderIds: BookmarkId[] = [];
 
     for (const file of files) {
         const folderId = uuid();
         const childIds: BookmarkId[] = [];
         Object.assign(nodes, file.doc.nodes);
+        Object.assign(icons, file.doc.icons);
 
         for (const id of file.doc.rootIds) {
             const node = nodes[id];
@@ -530,7 +549,7 @@ function appendImportedFolders(current: BookmarkDocument, files: PendingImportFi
         folderIds.push(folderId);
     }
 
-    return { doc: { nodes, rootIds }, folderIds };
+    return { doc: { nodes, rootIds, icons }, folderIds };
 }
 
 /** Ids of the selected items that are not inside another selected folder, so each deletion removes its contents once. */

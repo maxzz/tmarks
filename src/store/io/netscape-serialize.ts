@@ -1,4 +1,4 @@
-import { type BookmarkDocument, type BookmarkId, type BookmarkNodes } from "../store/9-bookmark-types";
+import { type BookmarkDocument, type BookmarkId } from "../store/9-bookmark-types";
 
 /**
  * Writes a document in the Netscape Bookmark File Format, the same layout Chrome and Opera export.
@@ -42,15 +42,15 @@ export function serializeNetscapeBookmarks(doc: BookmarkDocument, nowSeconds: nu
     ];
 
     for (const id of doc.rootIds) {
-        writeNode(lines, doc.nodes, id, 1, nowSeconds);
+        writeNode(lines, doc, id, 1, nowSeconds);
     }
 
     lines.push("</DL><p>");
     return lines.join("\n") + "\n";
 }
 
-function writeNode(lines: string[], nodes: BookmarkNodes, id: BookmarkId, depth: number, nowSeconds: number): void {
-    const node = nodes[id];
+function writeNode(lines: string[], doc: BookmarkDocument, id: BookmarkId, depth: number, nowSeconds: number): void {
+    const node = doc.nodes[id];
     if (!node) {
         return;
     }
@@ -71,7 +71,7 @@ function writeNode(lines: string[], nodes: BookmarkNodes, id: BookmarkId, depth:
         lines.push(`${indent}<DL><p>`);
 
         for (const childId of node.childIds) {
-            writeNode(lines, nodes, childId, depth + 1, nowSeconds);
+            writeNode(lines, doc, childId, depth + 1, nowSeconds);
         }
         
         lines.push(`${indent}</DL><p>`);
@@ -79,8 +79,9 @@ function writeNode(lines: string[], nodes: BookmarkNodes, id: BookmarkId, depth:
     }
 
     const attributes = [`HREF="${escapeHtml(node.url)}"`, ...dates];
-    if (node.icon) {
-        attributes.push(`ICON="${escapeHtml(node.icon)}"`);
+    const icon = node.iconId === null ? undefined : doc.icons[node.iconId];
+    if (icon) {
+        attributes.push(`ICON="${escapeHtml(icon)}"`);
     }
 
     lines.push(`${indent}<DT><A ${attributes.join(" ")}>${escapeHtml(node.title)}</A>`);
