@@ -3,6 +3,7 @@ import { type BookmarkDocument } from "../store/9-bookmark-types";
 export interface DocumentStats {
     folders: number;
     links: number;
+    /** Links that carry an icon. Repeated icons are counted each time, so this is the total loaded. */
     linksWithIcon: number;
     /** Entries in the icon cache. Each distinct icon is counted once. */
     uniqueIcons: number;
@@ -51,8 +52,9 @@ export function logDocumentStats(title: string, doc: BookmarkDocument): void {
     console.table([
         { item: "Folders processed", value: s.folders.toLocaleString() },
         { item: "URLs (links) processed", value: s.links.toLocaleString() },
-        { item: "Links with an icon", value: s.linksWithIcon.toLocaleString() },
+        { item: "Icons loaded (total, incl. repeats)", value: s.linksWithIcon.toLocaleString() },
         { item: "Unique icons in cache", value: s.uniqueIcons.toLocaleString() },
+        { item: "Links without an icon", value: (s.links - s.linksWithIcon).toLocaleString() },
         { item: "Icon data in cache", value: formatChars(s.iconCacheChars) },
         { item: "Icon data if stored per link (old format)", value: formatChars(s.perLinkIconChars) },
         { item: "Saved by sharing icons", value: `${formatChars(savedChars)} (${savedPercent.toFixed(1)}%)` },
