@@ -4,7 +4,7 @@ import { ExternalLink, Pencil, Trash } from "lucide-react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { nodeAtom } from "@/store/store/a-bookmarks-atoms";
-import { openBookmarkLink } from "../0-all-main/bookmark-ui-helpers";
+import { openBookmarkLink } from "../0-all-main/8-bookmark-ui-helpers";
 import { deleteContextItemAtom, editContextItemAtom, restoreFocusAfterContextMenuAtom } from "./a-bookmark-context-actions";
 
 /**

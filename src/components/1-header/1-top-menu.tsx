@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { hasBookmarksAtom } from "@/store/store/a-bookmarks-atoms";
 import { openImportPickerAtom, requestClearAtom, saveBookmarksAtom } from "@/store/store/a-bookmarks-actions";
 
-export function AppMenuButton() {
+export function TopMenu() {
     const hasBookmarks = useAtomValue(hasBookmarksAtom);
     const openImportPicker = useSetAtom(openImportPickerAtom);
     const save = useSetAtom(saveBookmarksAtom);

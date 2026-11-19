@@ -18,7 +18,10 @@ export function ViewModeToggle() {
             onClick={() => setViewMode(isGrid ? "list" : "grid")}
             type="button"
         >
-            {isGrid ? <List className="size-3.5" /> : <LayoutGrid className="size-3.5" />}
+            {isGrid
+                ? <List className="size-3.5" />
+                : <LayoutGrid className="size-3.5" />
+            }
         </Button>
     );
 }

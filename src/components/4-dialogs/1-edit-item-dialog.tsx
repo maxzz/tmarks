@@ -5,7 +5,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { editDraftAtom, editingIdAtom } from "@/store/store/a-bookmarks-atoms";
 import { cancelEditAtom, commitEditAtom } from "@/store/store/a-bookmarks-actions";
-import { focusBookmarksArea } from "../2-main/0-all-main/bookmark-ui-helpers";
+import { focusBookmarksArea } from "../2-main/0-all-main/8-bookmark-ui-helpers";
 
 /** Dialog opened with F2 on the selected item. Edits its name and, for bookmarks, its URL. */
 export function EditItemDialog() {
