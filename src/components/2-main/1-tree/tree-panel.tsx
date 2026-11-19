@@ -14,7 +14,8 @@ export function Panel_Tree() {
     const rootIds = useAtomValue(rootFolderIdsAtom);
 
     return (
-        <div role="tree" aria-label="Bookmarks" className="py-1 h-full select-none overflow-auto">
+        // tabIndex lets a click on empty space focus the tree, so the selection keeps its focused look.
+        <div role="tree" aria-label="Bookmarks" tabIndex={-1} className="group/tree py-1 h-full select-none overflow-auto outline-none">
             {rootIds.map(
                 (id) => (
                     <TreeRow key={id} id={id} depth={0} />
@@ -42,7 +43,12 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
         <div role="none">
             <BookmarkContextMenu id={id} scope="tree">
                 <div
-                    className={classNames("pr-2 py-1 hover:bg-muted outline-none flex items-center gap-1.5 cursor-default", isSelected && "text-foreground bg-primary/15")}
+                    className={classNames(
+                        "pr-2 py-1 hover:bg-muted flex items-center gap-1.5 cursor-default",
+                        isSelected
+                            ? "outline outline-border text-foreground bg-muted group-focus-within/tree:bg-primary/15 group-focus-within/tree:outline-primary/40 group-focus-within/tree:hover:bg-primary/15"
+                            : "outline-none",
+                    )}
                     style={{ paddingLeft: `${depth * 0.75 + 0.375}rem` }}
                     tabIndex={-1}
                     ref={revealWhenSelected(isSelected)}

@@ -15,7 +15,8 @@ export function Panel_Items() {
     const { showItemUrls } = useSnapshot(appSettings);
 
     return (
-        <div className="h-full min-h-0 flex flex-col">
+        // tabIndex lets a click on empty space focus the panel, so the selection keeps its focused look.
+        <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
             <ItemsPanelHeader count={itemIds.length} />
 
             <div className="flex-1 p-2 min-h-0 overflow-auto">
@@ -79,7 +80,10 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     return (
         <BookmarkContextMenu id={id} scope="items">
             <div
-                className={classNames("px-2 py-1.5 hover:bg-muted outline-none rounded-sm flex items-center gap-3 cursor-default", isSelected && "bg-primary/15 hover:bg-primary/15")}
+                className={classNames(
+                    "px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default",
+                    isSelected ? selectedItemClass : "outline-none",
+                )}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
@@ -139,8 +143,8 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 className={classNames(
-                    "p-2 text-center hover:bg-muted border border-transparent outline-none rounded-md flex flex-col items-center gap-2 cursor-default",
-                    isSelected && "bg-primary/15 hover:bg-primary/15 border-primary/40",
+                    "p-2 text-center hover:bg-muted border border-transparent rounded-md flex flex-col items-center gap-2 cursor-default",
+                    isSelected ? selectedItemClass : "outline-none",
                 )}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
                 onDoubleClick={() => openItem(node, openFolder)}
@@ -153,6 +157,12 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
         </BookmarkContextMenu>
     );
 }
+
+/**
+ * Selected row or card. Light gray with a darker outline while the items panel does not have focus; blue with a
+ * blue outline while it does. Both panels use the same look (see `group/tree` in the tree panel).
+ */
+const selectedItemClass = "outline outline-border bg-muted group-focus-within/items:bg-primary/15 group-focus-within/items:outline-primary/40 group-focus-within/items:hover:bg-primary/15";
 
 /** Double-click opens a link in a new tab, or opens a folder to show its contents. Single click only selects. */
 function openItem(node: BookmarkNode, openFolder: (id: BookmarkId) => void) {

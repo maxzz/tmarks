@@ -38,14 +38,29 @@ export const rootFolderIdsAtom = atom(
 //---------------------------------------------------------------------------
 // UI state
 
-/** The item the keyboard and the right panel follow: the last one clicked, or the one moved to with the arrows. */
-export const selectedIdAtom = atom<BookmarkId | null>(null);
+// Each panel keeps its own selection. A click in one panel never changes the other panel's selection, so an item
+// selected in the right panel stays highlighted whenever its folder is shown there.
 
-/** Every selected item. Plain click selects one item; Ctrl/Cmd-click and Shift-click add to it. */
-export const selectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
+/** Tree selection: the folder last clicked (or moved to with the arrows). Only tree actions change it. */
+export const treeSelectedIdAtom = atom<BookmarkId | null>(null);
+/** Every selected tree row. Plain click selects one; Ctrl/Cmd-click and Shift-click add to it. */
+export const treeSelectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
 
-/** Which panel the last selection came from. The tree highlights only selections made in the tree, so a click in the right panel does not show up in the tree. */
+/** Right panel selection: the item last clicked. Only right-panel clicks change it. */
+export const itemSelectedIdAtom = atom<BookmarkId | null>(null);
+/** Every selected item in the right panel. */
+export const itemSelectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
+
+/** The panel the last click came from. Keyboard commands (F2, Delete) act on that panel's selection. */
 export const selectionPanelAtom = atom<"tree" | "items">("tree");
+
+/** The active selection: the item the keyboard acts on, and every selected item, from the panel that was clicked last. */
+export const selectedIdAtom = atom((get): BookmarkId | null =>
+    get(selectionPanelAtom) === "tree" ? get(treeSelectedIdAtom) : get(itemSelectedIdAtom)
+);
+export const selectedIdsAtom = atom((get): ReadonlySet<BookmarkId> =>
+    get(selectionPanelAtom) === "tree" ? get(treeSelectedIdsAtom) : get(itemSelectedIdsAtom)
+);
 
 /** Folders that are open in the tree. The top-level folders start open. */
 export const expandedIdsAtom = atom<ReadonlySet<BookmarkId>>(topLevelFolderIds(stored));
@@ -96,16 +111,17 @@ export const isExpandedAtom = atomFamily(
     )
 );
 
+/** Highlight in the right panel: the item is selected there. */
 export const isSelectedAtom = atomFamily(
     (id: BookmarkId) => atom(
-        (get) => get(selectedIdsAtom).has(id)
+        (get) => get(itemSelectedIdsAtom).has(id)
     )
 );
 
-/** Highlight in the tree: selected, and the selection was made in the tree. */
+/** Highlight in the tree: the folder is selected in the tree. */
 export const isTreeSelectedAtom = atomFamily(
     (id: BookmarkId) => atom(
-        (get) => get(selectionPanelAtom) === "tree" && get(selectedIdsAtom).has(id)
+        (get) => get(treeSelectedIdsAtom).has(id)
     )
 );
 
