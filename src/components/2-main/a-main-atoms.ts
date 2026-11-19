@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { type KeyboardEvent } from "react";
-import { navigateTreeKeyAtom, requestDeleteSelectedAtom, startEditSelectedAtom } from "./bookmarks/store/bookmarks-actions";
+import { navigateTreeKeyAtom, requestDeleteSelectedAtom, startEditSelectedAtom } from "./bookmarks/store/a-bookmarks-actions";
 
 /**
  * Keyboard handling for the bookmarks area (attached to the element that wraps the panels).

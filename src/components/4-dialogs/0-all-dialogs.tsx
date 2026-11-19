@@ -18,7 +18,7 @@ import {
     confirmClearAtom,
     confirmDeleteAtom,
     replaceWithImportAtom,
-} from "../2-main/bookmarks/store/bookmarks-actions";
+} from "../2-main/bookmarks/store/a-bookmarks-actions";
 import { focusBookmarksArea } from "../2-main/bookmarks/ui/bookmark-ui-helpers";
 import { EditItemDialog } from "./1-edit-item-dialog";
 

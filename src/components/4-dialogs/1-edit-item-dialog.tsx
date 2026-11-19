@@ -4,7 +4,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { editDraftAtom, editingIdAtom } from "../2-main/bookmarks/store/a-bookmarks-atoms";
-import { cancelEditAtom, commitEditAtom } from "../2-main/bookmarks/store/bookmarks-actions";
+import { cancelEditAtom, commitEditAtom } from "../2-main/bookmarks/store/a-bookmarks-actions";
 import { focusBookmarksArea } from "../2-main/bookmarks/ui/bookmark-ui-helpers";
 
 /** Dialog opened with F2 on the selected item. Edits its name and, for bookmarks, its URL. */

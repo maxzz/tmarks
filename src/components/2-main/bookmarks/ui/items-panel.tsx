@@ -4,7 +4,7 @@ import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "../store/9-bookmark-types";
 import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "../store/a-bookmarks-atoms";
-import { clickItemAtom } from "../store/bookmarks-actions";
+import { clickItemAtom } from "../store/a-bookmarks-actions";
 import { BookmarkContextMenu } from "../context-menu/bookmark-context-menu";
 import { ItemPreview } from "./item-preview";
 import { openBookmarkLink, revealWhenSelected } from "./bookmark-ui-helpers";

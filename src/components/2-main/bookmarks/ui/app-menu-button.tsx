@@ -4,7 +4,7 @@ import { MainPage, navigateToPageAtom } from "@/components/5-welcome/a-ui-app-pa
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { hasBookmarksAtom } from "../store/a-bookmarks-atoms";
-import { openImportPickerAtom, requestClearAtom, saveBookmarksAtom } from "../store/bookmarks-actions";
+import { openImportPickerAtom, requestClearAtom, saveBookmarksAtom } from "../store/a-bookmarks-actions";
 
 export function AppMenuButton() {
     const hasBookmarks = useAtomValue(hasBookmarksAtom);
