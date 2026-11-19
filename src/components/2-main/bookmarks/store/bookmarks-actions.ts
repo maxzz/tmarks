@@ -4,7 +4,7 @@ import { uuid } from "@/utils/uuid";
 import { downloadTextFile } from "../io/download-text-file";
 import { parseNetscapeBookmarks } from "../io/netscape-parse";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
-import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "../model/bookmark-types";
+import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "../model/9-bookmark-types";
 import {
     bookmarkNodesAtom,
     bookmarkRootIdsAtom,

@@ -8,7 +8,7 @@ import {
     ContextMenuSeparator,
     ContextMenuTrigger,
 } from "@/ui/shadcn/context-menu";
-import { type BookmarkId } from "../model/bookmark-types";
+import { type BookmarkId } from "../model/9-bookmark-types";
 import { nodeAtom } from "../store/bookmarks-atoms";
 import { openBookmarkLink } from "../ui/bookmark-ui-helpers";
 import { deleteContextItemAtom, editContextItemAtom, restoreFocusAfterContextMenuAtom } from "./bookmark-context-actions";

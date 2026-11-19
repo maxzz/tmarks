@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
-import { type BookmarkId, type BookmarkNode } from "../model/bookmark-types";
+import { type BookmarkId, type BookmarkNode } from "../model/9-bookmark-types";
 import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "../store/bookmarks-atoms";
 import { clickItemAtom } from "../store/bookmarks-actions";
 import { BookmarkContextMenu } from "../context-menu/bookmark-context-menu";

@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { classNames } from "@/utils";
-import { type BookmarkId } from "../model/bookmark-types";
+import { type BookmarkId } from "../model/9-bookmark-types";
 import { childFolderIdsAtom, isExpandedAtom, isSelectedAtom, nodeAtom, rootFolderIdsAtom } from "../store/bookmarks-atoms";
 import { clickItemAtom, toggleExpandedAtom } from "../store/bookmarks-actions";
 import { BookmarkContextMenu } from "../context-menu/bookmark-context-menu";

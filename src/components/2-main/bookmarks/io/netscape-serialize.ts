@@ -1,4 +1,4 @@
-import { type BookmarkDocument, type BookmarkId, type BookmarkNodes } from "../model/bookmark-types";
+import { type BookmarkDocument, type BookmarkId, type BookmarkNodes } from "../model/9-bookmark-types";
 
 /**
  * Writes a document in the Netscape Bookmark File Format, the same layout Chrome and Opera export.

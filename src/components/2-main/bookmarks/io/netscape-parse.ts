@@ -1,5 +1,5 @@
 import { uuid } from "@/utils/uuid";
-import { type BookmarkDocument, type BookmarkFolder, type BookmarkId, type BookmarkLink, type BookmarkNodes } from "../model/bookmark-types";
+import { type BookmarkDocument, type BookmarkFolder, type BookmarkId, type BookmarkLink, type BookmarkNodes } from "../model/9-bookmark-types";
 
 /**
  * Reads the Netscape Bookmark File Format ("NETSCAPE-Bookmark-file-1") that Chrome and Opera

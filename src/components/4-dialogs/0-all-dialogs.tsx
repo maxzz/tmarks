@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { type BookmarkNode } from "../2-main/bookmarks/model/bookmark-types";
+import { type BookmarkNode } from "../2-main/bookmarks/model/9-bookmark-types";
 import {
     bookmarkNodesAtom,
     clearDialogOpenAtom,
@@ -20,7 +20,7 @@ import {
     replaceWithImportAtom,
 } from "../2-main/bookmarks/store/bookmarks-actions";
 import { focusBookmarksArea } from "../2-main/bookmarks/ui/bookmark-ui-helpers";
-import { EditItemDialog } from "../2-main/bookmarks/ui/edit-item-dialog";
+import { EditItemDialog } from "./1-edit-item-dialog";
 
 /** Confirmation and choice dialogs of the bookmarks area. Rendered at app level, so they also work over the Welcome page. */
 export function BookmarkDialogs() {
