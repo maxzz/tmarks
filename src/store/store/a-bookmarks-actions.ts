@@ -26,9 +26,13 @@ import {
     pendingImportAtom,
     pinnedFolderAtom,
     type PendingImportFile,
+    itemSelectedIdAtom,
+    itemSelectedIdsAtom,
     selectedIdAtom,
     selectedIdsAtom,
-    selectedNodeAtom,
+    selectionPanelAtom,
+    treeSelectedIdAtom,
+    treeSelectedIdsAtom,
     visibleTreeIdsAtom,
 } from "./a-bookmarks-atoms";
 
@@ -42,8 +46,7 @@ export const loadBookmarkDocumentAtom = atom(
         set(bookmarkNodesAtom, doc.nodes);
         set(bookmarkRootIdsAtom, doc.rootIds);
         set(bookmarkIconsAtom, doc.icons);
-        set(selectedIdAtom, null);
-        set(selectedIdsAtom, new Set());
+        clearAllSelection(set);
         set(pinnedFolderAtom, null);
         set(editingIdAtom, null);
         set(expandedIdsAtom, new Set(doc.rootIds.filter((id) => doc.nodes[id]?.kind === "folder")));
@@ -179,8 +182,12 @@ export const selectItemAtom = atom(
     null,
     (get, set, id: BookmarkId | null) => {
         set(pinnedFolderAtom, null);
-        set(selectedIdAtom, id);
-        set(selectedIdsAtom, id === null ? new Set() : new Set([id]));
+        set(selectionPanelAtom, "tree");
+        set(treeSelectedIdAtom, id);
+        set(treeSelectedIdsAtom, id === null ? new Set() : new Set([id]));
+        // A tree selection replaces the right panel's selection.
+        set(itemSelectedIdAtom, null);
+        set(itemSelectedIdsAtom, new Set());
         if (id === null) {
             return;
         }
@@ -211,10 +218,24 @@ export const clickItemAtom = atom(
     (get, set, click: { id: BookmarkId; scope: "tree" | "items"; ctrl: boolean; shift: boolean; }) => {
         // Clicks in the right panel keep the panel on its current folder, even when the clicked item is a folder.
         const panelFolderId = get(currentFolderIdAtom);
+        set(selectionPanelAtom, click.scope);
+        if (click.scope === "tree") {
+            // A tree click replaces the right panel's selection.
+            set(itemSelectedIdAtom, null);
+            set(itemSelectedIdsAtom, new Set());
+        }
         selectClickedItem(get, set, click);
         set(pinnedFolderAtom, click.scope === "items" ? { id: panelFolderId } : null);
     }
 );
+
+/** Clears the selection in both panels. */
+function clearAllSelection(set: Setter) {
+    set(treeSelectedIdAtom, null);
+    set(treeSelectedIdsAtom, new Set());
+    set(itemSelectedIdAtom, null);
+    set(itemSelectedIdsAtom, new Set());
+}
 
 /** Opens a folder: selects it and shows its contents in the right panel (used by double-click). */
 export const openFolderAtom = atom(
@@ -230,35 +251,39 @@ function selectClickedItem(
     set: Setter,
     click: { id: BookmarkId; scope: "tree" | "items"; ctrl: boolean; shift: boolean; }
 ) {
-    const anchor = get(selectedIdAtom);
+    // Each panel has its own selection, so clicks in one panel never change the other's.
+    const isTree = click.scope === "tree";
+    const idAtom = isTree ? treeSelectedIdAtom : itemSelectedIdAtom;
+    const idsAtom = isTree ? treeSelectedIdsAtom : itemSelectedIdsAtom;
+    const anchor = get(idAtom);
 
     if (click.shift && anchor !== null) {
-        const order = click.scope === "tree" ? get(visibleTreeIdsAtom) : get(currentItemIdsAtom);
+        const order = isTree ? get(visibleTreeIdsAtom) : get(currentItemIdsAtom);
         const from = order.indexOf(anchor);
         const to = order.indexOf(click.id);
         if (from >= 0 && to >= 0) {
             const [start, end] = from < to ? [from, to] : [to, from];
-            set(selectedIdsAtom, new Set(order.slice(start, end + 1)));
+            set(idsAtom, new Set(order.slice(start, end + 1)));
             return;
         }
     }
 
     if (click.ctrl) {
-        const next = new Set(get(selectedIdsAtom));
+        const next = new Set(get(idsAtom));
         if (next.has(click.id)) {
             next.delete(click.id);
         } else {
             next.add(click.id);
         }
-        set(selectedIdsAtom, next);
-        set(selectedIdAtom, click.id);
+        set(idsAtom, next);
+        set(idAtom, click.id);
         return;
     }
 
     // A plain click in the right panel only selects. It does not expand or select anything in the tree.
-    if (click.scope === "items") {
-        set(selectedIdsAtom, new Set([click.id]));
-        set(selectedIdAtom, click.id);
+    if (!isTree) {
+        set(itemSelectedIdsAtom, new Set([click.id]));
+        set(itemSelectedIdAtom, click.id);
         return;
     }
 
@@ -288,10 +313,10 @@ export const navigateTreeKeyAtom = atom(
 
         const visible = get(visibleTreeIdsAtom);
         const expanded = get(expandedIdsAtom);
-        const selected = get(selectedNodeAtom);
-        // A selected link is not in the tree, so the arrows move from the folder that contains it.
-        const anchorId = selected?.kind === "link" ? selected.parentId : (selected?.id ?? null);
-        const index = anchorId === null ? -1 : visible.indexOf(anchorId);
+        // The arrows move the tree selection, so they start from the selected tree folder.
+        const treeId = get(treeSelectedIdAtom);
+        const selected = treeId === null ? undefined : get(bookmarkNodesAtom)[treeId];
+        const index = treeId === null ? -1 : visible.indexOf(treeId);
 
         const moveBy = (delta: number) => {
             if (visible.length === 0) {
@@ -459,8 +484,7 @@ export const confirmDeleteAtom = atom(
         set(bookmarkNodesAtom, nodes);
         set(bookmarkRootIdsAtom, rootIds);
         set(bookmarkIconsAtom, keepReferencedIcons(nodes, get(bookmarkIconsAtom)));
-        set(selectedIdAtom, null);
-        set(selectedIdsAtom, new Set());
+        clearAllSelection(set);
         set(pinnedFolderAtom, null);
         notice.info(ids.length === 1 ? "Deleted 1 item." : `Deleted ${ids.length} items.`);
     }
