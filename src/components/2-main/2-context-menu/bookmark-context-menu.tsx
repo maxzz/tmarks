@@ -10,7 +10,7 @@ import {
 } from "@/ui/shadcn/context-menu";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { nodeAtom } from "@/store/store/a-bookmarks-atoms";
-import { openBookmarkLink } from "../ui/bookmark-ui-helpers";
+import { openBookmarkLink } from "../bookmarks/ui/bookmark-ui-helpers";
 import { deleteContextItemAtom, editContextItemAtom, restoreFocusAfterContextMenuAtom } from "./bookmark-context-actions";
 
 /**

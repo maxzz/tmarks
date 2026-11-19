@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { deleteDialogOpenAtom, editingIdAtom, selectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
-import { focusBookmarksArea } from "../ui/bookmark-ui-helpers";
+import { focusBookmarksArea } from "../bookmarks/ui/bookmark-ui-helpers";
 
 //---------------------------------------------------------------------------
 // Context-menu actions. Each one is a Jotai write atom, so the menu components only call `set` and hold no state.
