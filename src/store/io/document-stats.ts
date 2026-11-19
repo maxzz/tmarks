@@ -13,6 +13,11 @@ export interface DocumentStats {
     perLinkIconChars: number;
 }
 
+export interface StatRow {
+    label: string;
+    value: string;
+}
+
 export function documentStats(doc: BookmarkDocument): DocumentStats {
     let folders = 0;
     let links = 0;
@@ -42,23 +47,29 @@ export function documentStats(doc: BookmarkDocument): DocumentStats {
     return { folders, links, linksWithIcon, uniqueIcons: icons.length, iconCacheChars, perLinkIconChars };
 }
 
-/** Prints the document's statistics as a collapsed console group. */
-export function logDocumentStats(title: string, doc: BookmarkDocument): void {
-    const s = documentStats(doc);
+/** The statistics as label and value pairs, in the order they are shown. */
+export function statsRows(s: DocumentStats): StatRow[] {
     const savedChars = s.perLinkIconChars - s.iconCacheChars;
     const savedPercent = s.perLinkIconChars > 0 ? (100 * savedChars) / s.perLinkIconChars : 0;
 
+    return [
+        { label: "Folders processed", value: s.folders.toLocaleString() },
+        { label: "URLs (links) processed", value: s.links.toLocaleString() },
+        { label: "Icons loaded (total, incl. repeats)", value: s.linksWithIcon.toLocaleString() },
+        { label: "Unique icons in cache", value: s.uniqueIcons.toLocaleString() },
+        { label: "Links without an icon", value: (s.links - s.linksWithIcon).toLocaleString() },
+        { label: "Icon data in cache", value: formatChars(s.iconCacheChars) },
+        { label: "Icon data if stored per link (old format)", value: formatChars(s.perLinkIconChars) },
+        { label: "Saved by sharing icons", value: `${formatChars(savedChars)} (${savedPercent.toFixed(1)}%)` },
+    ];
+}
+
+/** Prints the document's statistics as a collapsed console group. */
+export function logDocumentStats(title: string, doc: BookmarkDocument): void {
+    const rows = statsRows(documentStats(doc));
+
     console.groupCollapsed(`[bookmarks] ${title}`);
-    console.table([
-        { item: "Folders processed", value: s.folders.toLocaleString() },
-        { item: "URLs (links) processed", value: s.links.toLocaleString() },
-        { item: "Icons loaded (total, incl. repeats)", value: s.linksWithIcon.toLocaleString() },
-        { item: "Unique icons in cache", value: s.uniqueIcons.toLocaleString() },
-        { item: "Links without an icon", value: (s.links - s.linksWithIcon).toLocaleString() },
-        { item: "Icon data in cache", value: formatChars(s.iconCacheChars) },
-        { item: "Icon data if stored per link (old format)", value: formatChars(s.perLinkIconChars) },
-        { item: "Saved by sharing icons", value: `${formatChars(savedChars)} (${savedPercent.toFixed(1)}%)` },
-    ]);
+    console.table(rows.map((row) => ({ item: row.label, value: row.value })));
     console.log("Sizes: characters of base64 text, which is about one byte each. KB = 1024 characters.");
     console.groupEnd();
 }

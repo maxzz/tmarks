@@ -20,6 +20,9 @@ export const bookmarkRootIdsAtom = atom<BookmarkId[]>(stored.rootIds);
 /** The icon cache. Links refer to an entry by id, so an icon shared by many bookmarks is kept once. */
 export const bookmarkIconsAtom = atom<BookmarkIcons>(stored.icons);
 
+/** What was loaded this session (imports and the restore at startup), as titled in the console statistics. */
+export const loadLogAtom = atom<string[]>([]);
+
 export const hasBookmarksAtom = atom(
     (get) => get(bookmarkRootIdsAtom).length > 0
 );
@@ -241,7 +244,9 @@ async function restoreIcons(): Promise<void> {
             completeLegacyTreeMigration(doc);
         }
         if (doc.rootIds.length > 0) {
-            logDocumentStats("restored from storage", doc);
+            const title = "restored from storage";
+            logDocumentStats(title, doc);
+            getDefaultStore().set(loadLogAtom, (log) => [...log, title]);
         }
     } catch (e) {
         console.error("Failed to restore icons", e);
