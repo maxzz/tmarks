@@ -9,7 +9,7 @@ import { BookmarkContextMenu } from "../3-context-menu/bookmark-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { openBookmarkLink, revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 
-export function ItemsPanel() {
+export function Panel_Items() {
     const viewMode = useAtomValue(viewModeAtom);
     const itemIds = useAtomValue(currentItemIdsAtom);
     const { showItemUrls } = useSnapshot(appSettings);
@@ -24,12 +24,16 @@ export function ItemsPanel() {
                     : viewMode === "grid"
                         ? (
                             <div role="listbox" aria-label="Items" aria-multiselectable="true" className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2">
-                                {itemIds.map((id) => <ItemCard key={id} id={id} showUrl={showItemUrls} />)}
+                                {itemIds.map(
+                                    (id) => <Item_InGrid key={id} id={id} showUrl={showItemUrls} />
+                                )}
                             </div>
                         )
                         : (
                             <div role="listbox" aria-label="Items" aria-multiselectable="true" className="select-none flex flex-col gap-px">
-                                {itemIds.map((id) => <ItemRow key={id} id={id} showUrl={showItemUrls} />)}
+                                {itemIds.map(
+                                    (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
+                                )}
                             </div>
                         )
                 }
@@ -53,11 +57,13 @@ function EmptyFolder() {
     return <div className="h-full text-muted-foreground grid place-items-center">This folder is empty.</div>;
 }
 
+//---------------------------------------------------------------------------
+
 /**
  * One row of the list. With `showUrl` the URL sits under the name. Otherwise the row shows only the name,
  * and the URL appears to the right of the name while the row is selected.
  */
-function ItemRow({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
+function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
@@ -104,8 +110,10 @@ function ItemRow({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     );
 }
 
+//---------------------------------------------------------------------------
+
 /** A grid card. Without `showUrl` the URL is shown below the name only while the card is selected. */
-function ItemCard({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
+function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);

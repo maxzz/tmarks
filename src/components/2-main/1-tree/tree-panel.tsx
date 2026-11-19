@@ -10,7 +10,7 @@ import { ItemPreview } from "../0-all-main/7-item-preview";
 import { revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 
 /** The folder tree. Only folders appear here; links are listed in the right panel. */
-export function TreePanel() {
+export function Panel_Tree() {
     const rootIds = useAtomValue(rootFolderIdsAtom);
 
     return (

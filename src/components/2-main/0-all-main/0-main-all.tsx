@@ -5,8 +5,8 @@ import { appSettings } from "@/store/1-ui-settings";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
 import { bookmarksKeyDownAtom } from "../a-main-atoms";
 import { hasBookmarksAtom } from "@/store/store/a-bookmarks-atoms";
-import { TreePanel } from "../1-tree/tree-panel";
-import { ItemsPanel } from "../2-items/items-panel";
+import { Panel_Tree } from "../1-tree/tree-panel";
+import { Panel_Items } from "../2-items/items-panel";
 
 /** Two panels: the folder tree on the left, the items of the selected folder on the right. */
 export function MainBody() {
@@ -35,13 +35,13 @@ function PanelsLayout() {
             }}
         >
             <ResizablePanel id="left" minSize={15} className="min-w-0 overflow-hidden">
-                <TreePanel />
+                <Panel_Tree />
             </ResizablePanel>
 
             <ResizableHandle withHandle />
 
             <ResizablePanel id="right" minSize={30} className="min-w-0 overflow-hidden">
-                <ItemsPanel />
+                <Panel_Items />
             </ResizablePanel>
         </ResizablePanelGroup>
     );
