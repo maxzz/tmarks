@@ -5,8 +5,8 @@ import { appSettings } from "@/store/1-ui-settings";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
 import { bookmarksKeyDownAtom } from "../a-main-atoms";
 import { hasBookmarksAtom } from "@/store/store/a-bookmarks-atoms";
-import { TreePanel } from "../bookmarks/ui/tree-panel";
-import { ItemsPanel } from "../bookmarks/ui/items-panel";
+import { TreePanel } from "./tree-panel";
+import { ItemsPanel } from "./items-panel";
 /** Two panels: the folder tree on the left, the items of the selected folder on the right. */
 export function MainBody() {
     const hasBookmarks = useAtomValue(hasBookmarksAtom);

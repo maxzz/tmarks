@@ -19,7 +19,7 @@ import {
     confirmDeleteAtom,
     replaceWithImportAtom,
 } from "@/store/store/a-bookmarks-actions";
-import { focusBookmarksArea } from "../2-main/bookmarks/ui/bookmark-ui-helpers";
+import { focusBookmarksArea } from "../2-main/0-all-main/bookmark-ui-helpers";
 import { EditItemDialog } from "./1-edit-item-dialog";
 
 /** Confirmation and choice dialogs of the bookmarks area. Rendered at app level, so they also work over the Welcome page. */
