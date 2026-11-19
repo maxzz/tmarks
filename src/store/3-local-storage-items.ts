@@ -1,5 +1,5 @@
 import { notice } from "@/ui/local-ui/7-toaster";
-import { type BookmarkDocument } from "../store/9-bookmark-types";
+import { type BookmarkDocument } from "./store/9-bookmark-types";
 
 const STORAGE_KEY = "tm-tmarks-tree-v1";
 
