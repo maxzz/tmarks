@@ -1,17 +1,11 @@
 import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { ExternalLink, Pencil, Trash } from "lucide-react";
-import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuSeparator,
-    ContextMenuTrigger,
-} from "@/ui/shadcn/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { nodeAtom } from "@/store/store/a-bookmarks-atoms";
 import { openBookmarkLink } from "../0-all-main/bookmark-ui-helpers";
-import { deleteContextItemAtom, editContextItemAtom, restoreFocusAfterContextMenuAtom } from "./bookmark-context-actions";
+import { deleteContextItemAtom, editContextItemAtom, restoreFocusAfterContextMenuAtom } from "./a-bookmark-context-actions";
 
 /**
  * Where the item is shown. The tree (`"tree"`, left) offers only "Delete".
@@ -46,28 +40,26 @@ function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: Bookma
 
     const isItemList = scope === "items";
 
-    return (
-        <>
-            {isItemList && node.kind === "link" && (
-                <ContextMenuItem onSelect={() => openBookmarkLink(node.url)}>
-                    <ExternalLink />
-                    Open in new tab
-                </ContextMenuItem>
-            )}
-
-            {isItemList && (
-                <ContextMenuItem onSelect={() => edit(id)}>
-                    <Pencil />
-                    Edit
-                </ContextMenuItem>
-            )}
-
-            {isItemList && <ContextMenuSeparator />}
-
-            <ContextMenuItem variant="destructive" onSelect={() => remove(id)}>
-                <Trash />
-                Delete
+    return (<>
+        {isItemList && node.kind === "link" && (
+            <ContextMenuItem onSelect={() => openBookmarkLink(node.url)}>
+                <ExternalLink />
+                Open in new tab
             </ContextMenuItem>
-        </>
-    );
+        )}
+
+        {isItemList && (
+            <ContextMenuItem onSelect={() => edit(id)}>
+                <Pencil />
+                Edit
+            </ContextMenuItem>
+        )}
+
+        {isItemList && <ContextMenuSeparator />}
+
+        <ContextMenuItem variant="destructive" onSelect={() => remove(id)}>
+            <Trash />
+            Delete
+        </ContextMenuItem>
+    </>);
 }
