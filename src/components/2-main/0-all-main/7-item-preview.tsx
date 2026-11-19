@@ -17,7 +17,7 @@ export function ItemPreview({ node, className }: { node: BookmarkNode; className
     const showIcon = icon !== null && icon !== failedIcon;
 
     return (
-        <span className={classNames("shrink-0 relative text-muted-foreground overflow-hidden grid place-items-center", className)} aria-hidden>
+        <span className={classNames("relative shrink-0 text-muted-foreground overflow-hidden grid place-items-center", className)} aria-hidden>
             {showIcon
                 ? (
                     <img

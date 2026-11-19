@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { Menu, Save, Sparkles, Trash2, Upload } from "lucide-react";
+import { ChartColumn, Menu, Save, Sparkles, Trash2, Upload } from "lucide-react";
 import { MainPage, navigateToPageAtom } from "@/components/5-welcome/a-ui-app-page";
+import { isOpenStatisticsDialogAtom } from "@/components/4-dialogs/8-4-statistics/9-types-statistics";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { hasBookmarksAtom } from "@/store/store/a-bookmarks-atoms";
@@ -12,6 +13,7 @@ export function TopMenu() {
     const save = useSetAtom(saveBookmarksAtom);
     const requestClear = useSetAtom(requestClearAtom);
     const navigate = useSetAtom(navigateToPageAtom);
+    const openStatistics = useSetAtom(isOpenStatisticsDialogAtom);
 
     return (
         <DropdownMenu>
@@ -35,6 +37,11 @@ export function TopMenu() {
                 <DropdownMenuItem disabled={!hasBookmarks} variant="destructive" onSelect={() => requestClear()}>
                     <Trash2 />
                     Clear all bookmarks…
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onSelect={() => openStatistics(true)}>
+                    <ChartColumn />
+                    Statistics…
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />

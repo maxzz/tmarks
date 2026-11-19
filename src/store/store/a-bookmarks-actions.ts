@@ -20,6 +20,7 @@ import {
     expandedIdsAtom,
     hasBookmarksAtom,
     importDialogOpenAtom,
+    loadLogAtom,
     pendingDeleteIdsAtom,
     currentFolderIdAtom,
     pendingImportAtom,
@@ -70,7 +71,9 @@ export const importBookmarkFilesAtom = atom(
                 const html = await file.text();
                 const started = performance.now();
                 const doc = parseNetscapeBookmarks(html);
-                logDocumentStats(`imported "${file.name}" (parsed in ${(performance.now() - started).toFixed(1)} ms)`, doc);
+                const title = `imported "${file.name}" (parsed in ${(performance.now() - started).toFixed(1)} ms)`;
+                logDocumentStats(title, doc);
+                set(loadLogAtom, (log) => [...log, title]);
                 return { name: file.name, doc };
             }));
         } catch (e) {
