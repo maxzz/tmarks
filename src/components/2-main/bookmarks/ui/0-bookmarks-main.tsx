@@ -1,11 +1,10 @@
-import { type KeyboardEvent } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Bookmark } from "lucide-react";
 import { type Layout } from "react-resizable-panels";
 import { appSettings } from "@/store/1-ui-settings";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
+import { bookmarksKeyDownAtom } from "../../a-main-atoms";
 import { hasBookmarksAtom } from "../store/bookmarks-atoms";
-import { navigateTreeKeyAtom, requestDeleteSelectedAtom, startEditSelectedAtom } from "../store/bookmarks-actions";
 import { TreePanel } from "./tree-panel";
 import { ItemsPanel } from "./items-panel";
 import { EditItemDialog } from "./edit-item-dialog";
@@ -13,38 +12,7 @@ import { EditItemDialog } from "./edit-item-dialog";
 /** Two panels: the folder tree on the left, the items of the selected folder on the right. */
 export function BookmarksMain() {
     const hasBookmarks = useAtomValue(hasBookmarksAtom);
-    const startEdit = useSetAtom(startEditSelectedAtom);
-    const navigateTree = useSetAtom(navigateTreeKeyAtom);
-    const requestDelete = useSetAtom(requestDeleteSelectedAtom);
-
-    function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-        // Ignore keys typed into fields, and keys from portaled menus/dialogs that are not inside this area.
-        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-            return;
-        }
-        if (!event.currentTarget.contains(event.target as Node)) {
-            return;
-        }
-
-        switch (event.key) {
-            case "F2":
-                event.preventDefault();
-                startEdit();
-                break;
-            case "Delete":
-            case "Backspace":
-                event.preventDefault();
-                requestDelete();
-                break;
-            case "ArrowUp":
-            case "ArrowDown":
-            case "ArrowLeft":
-            case "ArrowRight":
-                event.preventDefault();
-                navigateTree(event.key);
-                break;
-        }
-    }
+    const onKeyDown = useSetAtom(bookmarksKeyDownAtom);
 
     return (
         <div data-bookmarks-area tabIndex={0} onKeyDown={onKeyDown} className="h-full min-h-0 outline-none">

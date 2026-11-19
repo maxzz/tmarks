@@ -1,4 +1,4 @@
-import { BookmarksMain } from "@/components/2-main/bookmarks/ui/bookmarks-main";
+import { BookmarksMain } from "@/components/2-main/bookmarks/ui/0-bookmarks-main";
 
 export function MainBody() {
     return (
