@@ -3,11 +3,11 @@ import { Bookmark } from "lucide-react";
 import { type Layout } from "react-resizable-panels";
 import { appSettings } from "@/store/1-ui-settings";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { bookmarksKeyDownAtom } from "../../a-main-atoms";
-import { hasBookmarksAtom } from "../store/bookmarks-atoms";
-import { TreePanel } from "./tree-panel";
-import { ItemsPanel } from "./items-panel";
-import { EditItemDialog } from "./edit-item-dialog";
+import { bookmarksKeyDownAtom } from "../a-main-atoms";
+import { hasBookmarksAtom } from "../bookmarks/store/bookmarks-atoms";
+import { TreePanel } from "../bookmarks/ui/tree-panel";
+import { ItemsPanel } from "../bookmarks/ui/items-panel";
+import { EditItemDialog } from "../bookmarks/ui/edit-item-dialog";
 
 /** Two panels: the folder tree on the left, the items of the selected folder on the right. */
 export function BookmarksMain() {

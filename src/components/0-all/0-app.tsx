@@ -1,7 +1,7 @@
 import { Toaster } from '@/ui/shadcn/sonner';
 import { DropItDoc } from '@/ui/local-ui/6-dnd/ui-drop-it-doc';
 import { doSetFilesFrom_Dnd_Atom } from '@/ui/local-ui/6-dnd/8-dnd-atoms';
-import { BookmarkDialogs } from '@/components/2-main/bookmarks/ui/bookmark-dialogs';
+import { BookmarkDialogs } from '@/components/4-dialogs/0-all-dialogs';
 import { AllDialogs } from './1-globals';
 import { AppPages } from '../5-welcome';
 import { Header } from '../1-header';
@@ -18,7 +18,11 @@ export function App() {
         <AppPages>
             <main className="h-dvh text-xs bg-background overflow-hidden grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto]">
                 <Header />
-                <MainBody />
+
+                <div className="min-h-0 h-full">
+                    <MainBody />
+                </div>
+
                 <Section3_Footer />
             </main>
         </AppPages>
