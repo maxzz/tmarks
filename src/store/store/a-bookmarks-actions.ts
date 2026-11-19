@@ -1,4 +1,4 @@
-import { atom, getDefaultStore } from "jotai";
+import { atom, getDefaultStore, type Getter, type Setter } from "jotai";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { uuid } from "@/utils/uuid";
 import { downloadTextFile } from "../io/download-text-file";
@@ -19,7 +19,9 @@ import {
     hasBookmarksAtom,
     importDialogOpenAtom,
     pendingDeleteIdsAtom,
+    currentFolderIdAtom,
     pendingImportAtom,
+    pinnedFolderAtom,
     type PendingImportFile,
     selectedIdAtom,
     selectedIdsAtom,
@@ -38,6 +40,7 @@ export const loadBookmarkDocumentAtom = atom(
         set(bookmarkRootIdsAtom, doc.rootIds);
         set(selectedIdAtom, null);
         set(selectedIdsAtom, new Set());
+        set(pinnedFolderAtom, null);
         set(editingIdAtom, null);
         set(expandedIdsAtom, new Set(doc.rootIds.filter((id) => doc.nodes[id]?.kind === "folder")));
     }
@@ -165,6 +168,7 @@ export const saveBookmarksAtom = atom(
 export const selectItemAtom = atom(
     null,
     (get, set, id: BookmarkId | null) => {
+        set(pinnedFolderAtom, null);
         set(selectedIdAtom, id);
         set(selectedIdsAtom, id === null ? new Set() : new Set([id]));
         if (id === null) {
@@ -195,34 +199,54 @@ export const selectItemAtom = atom(
 export const clickItemAtom = atom(
     null,
     (get, set, click: { id: BookmarkId; scope: "tree" | "items"; ctrl: boolean; shift: boolean; }) => {
-        const anchor = get(selectedIdAtom);
-
-        if (click.shift && anchor !== null) {
-            const order = click.scope === "tree" ? get(visibleTreeIdsAtom) : get(currentItemIdsAtom);
-            const from = order.indexOf(anchor);
-            const to = order.indexOf(click.id);
-            if (from >= 0 && to >= 0) {
-                const [start, end] = from < to ? [from, to] : [to, from];
-                set(selectedIdsAtom, new Set(order.slice(start, end + 1)));
-                return;
-            }
-        }
-
-        if (click.ctrl) {
-            const next = new Set(get(selectedIdsAtom));
-            if (next.has(click.id)) {
-                next.delete(click.id);
-            } else {
-                next.add(click.id);
-            }
-            set(selectedIdsAtom, next);
-            set(selectedIdAtom, click.id);
-            return;
-        }
-
-        set(selectItemAtom, click.id);
+        // Clicks in the right panel keep the panel on its current folder, even when the clicked item is a folder.
+        const panelFolderId = get(currentFolderIdAtom);
+        selectClickedItem(get, set, click);
+        set(pinnedFolderAtom, click.scope === "items" ? { id: panelFolderId } : null);
     }
 );
+
+/** Opens a folder: selects it and shows its contents in the right panel (used by double-click). */
+export const openFolderAtom = atom(
+    null,
+    (_get, set, id: BookmarkId) => {
+        set(pinnedFolderAtom, null);
+        set(selectItemAtom, id);
+    }
+);
+
+function selectClickedItem(
+    get: Getter,
+    set: Setter,
+    click: { id: BookmarkId; scope: "tree" | "items"; ctrl: boolean; shift: boolean; }
+) {
+    const anchor = get(selectedIdAtom);
+
+    if (click.shift && anchor !== null) {
+        const order = click.scope === "tree" ? get(visibleTreeIdsAtom) : get(currentItemIdsAtom);
+        const from = order.indexOf(anchor);
+        const to = order.indexOf(click.id);
+        if (from >= 0 && to >= 0) {
+            const [start, end] = from < to ? [from, to] : [to, from];
+            set(selectedIdsAtom, new Set(order.slice(start, end + 1)));
+            return;
+        }
+    }
+
+    if (click.ctrl) {
+        const next = new Set(get(selectedIdsAtom));
+        if (next.has(click.id)) {
+            next.delete(click.id);
+        } else {
+            next.add(click.id);
+        }
+        set(selectedIdsAtom, next);
+        set(selectedIdAtom, click.id);
+        return;
+    }
+
+    set(selectItemAtom, click.id);
+}
 
 export const toggleExpandedAtom = atom(
     null,
@@ -419,6 +443,7 @@ export const confirmDeleteAtom = atom(
         set(bookmarkRootIdsAtom, rootIds);
         set(selectedIdAtom, null);
         set(selectedIdsAtom, new Set());
+        set(pinnedFolderAtom, null);
         notice.info(ids.length === 1 ? "Deleted 1 item." : `Deleted ${ids.length} items.`);
     }
 );

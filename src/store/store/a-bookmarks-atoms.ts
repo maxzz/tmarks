@@ -119,11 +119,26 @@ export const editingNodeAtom = atom(
 );
 
 /**
- * Folder whose items the right panel shows: the selected folder itself, or the folder that
- * contains the selected item. `null` means the top level.
+ * Folder the right panel stays on after a click inside the right panel. Selecting a folder there only
+ * selects it; the panel keeps showing this folder until that folder is opened with a double-click.
+ * `null` means no pin: the panel follows the selection. The pinned `id` may be `null` for the top level.
+ */
+export const pinnedFolderAtom = atom<{ id: BookmarkId | null; } | null>(null);
+
+/**
+ * Folder whose items the right panel shows: the pinned folder if there is one, otherwise the selected folder
+ * itself or the folder that contains the selected item. `null` means the top level.
  */
 export const currentFolderIdAtom = atom(
     (get): BookmarkId | null => {
+        const pinned = get(pinnedFolderAtom);
+        if (pinned) {
+            const pinnedId = pinned.id;
+            if (pinnedId === null || get(bookmarkNodesAtom)[pinnedId]?.kind === "folder") {
+                return pinnedId;
+            }
+        }
+
         const node = get(selectedNodeAtom);
         if (!node) {
             return null;

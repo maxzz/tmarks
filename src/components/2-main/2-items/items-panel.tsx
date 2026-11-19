@@ -4,7 +4,7 @@ import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "@/store/store/9-bookmark-types";
 import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "@/store/store/a-bookmarks-atoms";
-import { clickItemAtom } from "@/store/store/a-bookmarks-actions";
+import { clickItemAtom, openFolderAtom } from "@/store/store/a-bookmarks-actions";
 import { BookmarkContextMenu } from "../3-context-menu/bookmark-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { openBookmarkLink, revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
@@ -67,6 +67,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
+    const openFolder = useSetAtom(openFolderAtom);
 
     if (!node) {
         return null;
@@ -82,7 +83,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
-                onDoubleClick={() => openItem(node)}
+                onDoubleClick={() => openItem(node, openFolder)}
                 aria-selected={isSelected}
                 role="option"
             >
@@ -124,6 +125,7 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
+    const openFolder = useSetAtom(openFolderAtom);
 
     if (!node) {
         return null;
@@ -141,7 +143,7 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                     isSelected && "bg-primary/15 hover:bg-primary/15 border-primary/40",
                 )}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
-                onDoubleClick={() => openItem(node)}
+                onDoubleClick={() => openItem(node, openFolder)}
             >
                 <ItemPreview node={node} className="size-4 rounded-sm" />
 
@@ -152,9 +154,11 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     );
 }
 
-/** Double-click opens a bookmark. Folders are already opened by the single click that selects them. */
-function openItem(node: BookmarkNode) {
+/** Double-click opens a link in a new tab, or opens a folder to show its contents. Single click only selects. */
+function openItem(node: BookmarkNode, openFolder: (id: BookmarkId) => void) {
     if (node.kind === "link") {
         openBookmarkLink(node.url);
+    } else {
+        openFolder(node.id);
     }
 }
