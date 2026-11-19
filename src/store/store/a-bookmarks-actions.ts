@@ -29,7 +29,6 @@ import {
     selectedIdAtom,
     selectedIdsAtom,
     selectedNodeAtom,
-    selectionPanelAtom,
     visibleTreeIdsAtom,
 } from "./a-bookmarks-atoms";
 
@@ -180,7 +179,6 @@ export const selectItemAtom = atom(
     null,
     (get, set, id: BookmarkId | null) => {
         set(pinnedFolderAtom, null);
-        set(selectionPanelAtom, "tree");
         set(selectedIdAtom, id);
         set(selectedIdsAtom, id === null ? new Set() : new Set([id]));
         if (id === null) {
@@ -213,7 +211,6 @@ export const clickItemAtom = atom(
     (get, set, click: { id: BookmarkId; scope: "tree" | "items"; ctrl: boolean; shift: boolean; }) => {
         // Clicks in the right panel keep the panel on its current folder, even when the clicked item is a folder.
         const panelFolderId = get(currentFolderIdAtom);
-        set(selectionPanelAtom, click.scope);
         selectClickedItem(get, set, click);
         set(pinnedFolderAtom, click.scope === "items" ? { id: panelFolderId } : null);
     }
