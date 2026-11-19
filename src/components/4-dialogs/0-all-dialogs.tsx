@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { type BookmarkNode } from "../2-main/bookmarks/store/9-bookmark-types";
+import { type BookmarkNode } from "@/store/store/9-bookmark-types";
 import {
     bookmarkNodesAtom,
     clearDialogOpenAtom,
@@ -9,7 +9,7 @@ import {
     importDialogOpenAtom,
     pendingDeleteIdsAtom,
     pendingImportAtom,
-} from "../2-main/bookmarks/store/a-bookmarks-atoms";
+} from "@/store/store/a-bookmarks-atoms";
 import {
     appendImportAtom,
     cancelClearAtom,
@@ -18,7 +18,7 @@ import {
     confirmClearAtom,
     confirmDeleteAtom,
     replaceWithImportAtom,
-} from "../2-main/bookmarks/store/a-bookmarks-actions";
+} from "@/store/store/a-bookmarks-actions";
 import { focusBookmarksArea } from "../2-main/bookmarks/ui/bookmark-ui-helpers";
 import { EditItemDialog } from "./1-edit-item-dialog";
 

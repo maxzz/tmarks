@@ -3,8 +3,8 @@ import { Menu, Save, Sparkles, Trash2, Upload } from "lucide-react";
 import { MainPage, navigateToPageAtom } from "@/components/5-welcome/a-ui-app-page";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { hasBookmarksAtom } from "../store/a-bookmarks-atoms";
-import { openImportPickerAtom, requestClearAtom, saveBookmarksAtom } from "../store/a-bookmarks-actions";
+import { hasBookmarksAtom } from "@/store/store/a-bookmarks-atoms";
+import { openImportPickerAtom, requestClearAtom, saveBookmarksAtom } from "@/store/store/a-bookmarks-actions";
 
 export function AppMenuButton() {
     const hasBookmarks = useAtomValue(hasBookmarksAtom);

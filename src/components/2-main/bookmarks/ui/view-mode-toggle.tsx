@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { LayoutGrid, List } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import { viewModeAtom } from "../store/a-bookmarks-atoms";
+import { viewModeAtom } from "@/store/store/a-bookmarks-atoms";
 
 /** Switches the right panel between a list and a grid. */
 export function ViewModeToggle() {

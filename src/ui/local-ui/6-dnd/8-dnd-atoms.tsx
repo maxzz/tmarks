@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { importBookmarkFilesAtom } from "@/components/2-main/bookmarks/store/a-bookmarks-actions";
+import { importBookmarkFilesAtom } from "@/store/store/a-bookmarks-actions";
 
 export type DoSetFilesFrom_Dnd_Atom = typeof doSetFilesFrom_Dnd_Atom;
 

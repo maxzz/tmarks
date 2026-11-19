@@ -1,7 +1,7 @@
 import { atom } from "jotai";
-import { type BookmarkId } from "../store/9-bookmark-types";
-import { deleteDialogOpenAtom, editingIdAtom, selectedIdsAtom } from "../store/a-bookmarks-atoms";
-import { requestDeleteAtom, startEditAtom } from "../store/a-bookmarks-actions";
+import { type BookmarkId } from "@/store/store/9-bookmark-types";
+import { deleteDialogOpenAtom, editingIdAtom, selectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
+import { requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
 import { focusBookmarksArea } from "../ui/bookmark-ui-helpers";
 
 //---------------------------------------------------------------------------
