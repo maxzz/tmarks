@@ -1,5 +1,6 @@
 import { uuid } from "@/utils/uuid";
-import { type BookmarkDocument, type BookmarkFolder, type BookmarkId, type BookmarkLink, type BookmarkNodes } from "../store/9-bookmark-types";
+import { type BookmarkDocument, type BookmarkFolder, type BookmarkIcons, type BookmarkId, type BookmarkLink, type BookmarkNodes } from "../store/9-bookmark-types";
+import { addIcon } from "./icon-id";
 
 /**
  * Reads the Netscape Bookmark File Format ("NETSCAPE-Bookmark-file-1") that Chrome and Opera
@@ -15,12 +16,16 @@ import { type BookmarkDocument, type BookmarkFolder, type BookmarkId, type Bookm
 export function parseNetscapeBookmarks(html: string): BookmarkDocument {
     const doc = new DOMParser().parseFromString(html, "text/html");
     const nodes: BookmarkNodes = {};
-    const rootIds = readItems(doc.body, null, nodes);
-    return { nodes, rootIds };
+    const icons: BookmarkIcons = {};
+    const rootIds = readItems(doc.body, null, nodes, icons);
+    return { nodes, rootIds, icons };
 }
 
-/** Reads the items of one list (`<DL>`), recursing into wrappers the HTML parser may have created around them. */
-function readItems(container: Element, parentId: BookmarkId | null, nodes: BookmarkNodes): BookmarkId[] {
+/**
+ * Reads the items of one list (`<DL>`), recursing into wrappers the HTML parser may have created around them.
+ * Inline `ICON` images are moved into `icons`; the links keep only their id.
+ */
+function readItems(container: Element, parentId: BookmarkId | null, nodes: BookmarkNodes, icons: BookmarkIcons): BookmarkId[] {
     const ids: BookmarkId[] = [];
     const children = Array.from(container.children);
 
@@ -28,7 +33,7 @@ function readItems(container: Element, parentId: BookmarkId | null, nodes: Bookm
         const el = children[i];
 
         if (el.tagName === "DL" || el.tagName === "P") {
-            ids.push(...readItems(el, parentId, nodes));
+            ids.push(...readItems(el, parentId, nodes, icons));
             continue;
         }
 
@@ -59,7 +64,7 @@ function readItems(container: Element, parentId: BookmarkId | null, nodes: Bookm
                 childIds: [],
             };
             nodes[folderId] = folder;
-            folder.childIds = subList ? readItems(subList, folderId, nodes) : [];
+            folder.childIds = subList ? readItems(subList, folderId, nodes, icons) : [];
             ids.push(folderId);
             continue;
         }
@@ -76,7 +81,7 @@ function readItems(container: Element, parentId: BookmarkId | null, nodes: Bookm
                 url: a.getAttribute("HREF") ?? "",
                 addDate: readSeconds(a, "ADD_DATE"),
                 lastModified: readSeconds(a, "LAST_MODIFIED"),
-                icon: icon?.startsWith("data:image/") ? icon : null,
+                iconId: icon?.startsWith("data:image/") ? addIcon(icons, icon) : null,
             };
             nodes[linkId] = link;
             ids.push(linkId);

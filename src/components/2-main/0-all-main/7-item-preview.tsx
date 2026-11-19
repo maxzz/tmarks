@@ -1,13 +1,15 @@
 import { Folder, Globe } from "lucide-react";
+import { useAtomValue } from "jotai";
 import { classNames } from "@/utils";
 import { type BookmarkNode } from "@/store/store/9-bookmark-types";
+import { itemIconAtom } from "@/store/store/a-bookmarks-atoms";
 
 /**
- * Preview of one item: the browser's inline icon (ICON) for bookmarks, a folder glyph for folders.
+ * Preview of one item: the browser's icon for bookmarks (from the icon cache), a folder glyph for folders.
  * If the image is missing or fails to decode, the glyph underneath stays visible.
  */
 export function ItemPreview({ node, className }: { node: BookmarkNode; className?: string; }) {
-    const icon = node.kind === "link" ? node.icon : null;
+    const icon = useAtomValue(itemIconAtom(node.id));
 
     return (
         <span className={classNames("shrink-0 relative text-muted-foreground overflow-hidden grid place-items-center", className)} aria-hidden>
