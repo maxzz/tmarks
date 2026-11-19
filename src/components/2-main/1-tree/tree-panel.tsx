@@ -67,7 +67,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                         : <span className="shrink-0 size-4" />
                     }
 
-                    <ItemPreview node={node} className="size-4" />
+                    <ItemPreview node={node} className="size-4" glyphClassName="size-[90%]" open={isExpanded} />
 
                     <span className="min-w-0 truncate">{node.title || "(untitled)"}</span>
                 </div>
