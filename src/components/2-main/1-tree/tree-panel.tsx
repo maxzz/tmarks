@@ -15,9 +15,11 @@ export function Panel_Tree() {
 
     return (
         <div role="tree" aria-label="Bookmarks" className="py-1 h-full select-none overflow-auto">
-            {rootIds.map((id) => (
-                <TreeRow key={id} id={id} depth={0} />
-            ))}
+            {rootIds.map(
+                (id) => (
+                    <TreeRow key={id} id={id} depth={0} />
+                )
+            )}
         </div>
     );
 }
@@ -40,18 +42,15 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
         <div role="none">
             <BookmarkContextMenu id={id} scope="tree">
                 <div
-                    role="treeitem"
-                    aria-selected={isSelected}
-                    aria-expanded={hasChildren ? isExpanded : undefined}
+                    className={classNames("pr-2 py-1 hover:bg-muted outline-none flex items-center gap-1.5 cursor-default", isSelected && "text-foreground bg-primary/15")}
+                    style={{ paddingLeft: `${depth * 0.75 + 0.375}rem` }}
                     tabIndex={-1}
                     ref={revealWhenSelected(isSelected)}
-                    title={node.title}
-                    style={{ paddingLeft: `${depth * 0.75 + 0.375}rem` }}
-                    className={classNames(
-                        "pr-2 py-1 hover:bg-muted outline-none flex items-center gap-1.5 cursor-default",
-                        isSelected && "text-foreground bg-primary/15",
-                    )}
                     onClick={(e) => clickItem({ id, scope: "tree", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
+                    title={node.title}
+                    aria-selected={isSelected}
+                    aria-expanded={hasChildren ? isExpanded : undefined}
+                    role="treeitem"
                 >
                     {hasChildren
                         ? (

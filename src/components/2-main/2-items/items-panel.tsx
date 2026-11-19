@@ -23,14 +23,14 @@ export function Panel_Items() {
                     ? <EmptyFolder />
                     : viewMode === "grid"
                         ? (
-                            <div role="listbox" aria-label="Items" aria-multiselectable="true" className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2">
+                            <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
                                 {itemIds.map(
                                     (id) => <Item_InGrid key={id} id={id} showUrl={showItemUrls} />
                                 )}
                             </div>
                         )
                         : (
-                            <div role="listbox" aria-label="Items" aria-multiselectable="true" className="select-none flex flex-col gap-px">
+                            <div className="select-none flex flex-col gap-px" role="listbox" aria-label="Items" aria-multiselectable="true">
                                 {itemIds.map(
                                     (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
                                 )}
@@ -78,16 +78,13 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     return (
         <BookmarkContextMenu id={id} scope="items">
             <div
-                role="option"
-                aria-selected={isSelected}
+                className={classNames("px-2 py-1.5 hover:bg-muted outline-none rounded-sm flex items-center gap-3 cursor-default", isSelected && "bg-primary/15 hover:bg-primary/15")}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
-                className={classNames(
-                    "px-2 py-1.5 hover:bg-muted outline-none rounded-sm flex items-center gap-3 cursor-default",
-                    isSelected && "bg-primary/15 hover:bg-primary/15",
-                )}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
                 onDoubleClick={() => openItem(node)}
+                aria-selected={isSelected}
+                role="option"
             >
                 <ItemPreview node={node} className="size-4 rounded-sm" />
 
@@ -95,13 +92,23 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                     ? (
                         <div className="flex-1 min-w-0 flex flex-col">
                             <span className="text-sm truncate">{title}</span>
-                            {url !== null && <span className="text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                            {url !== null && (
+                                <span className="text-[0.7rem] text-muted-foreground truncate">
+                                    {url}
+                                </span>
+                            )}
                         </div>
                     )
                     : (
                         <div className="flex-1 min-w-0 flex items-center gap-2">
-                            <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>{title}</span>
-                            {isSelected && url && <span className="flex-1 min-w-0 text-[0.7rem] text-muted-foreground truncate">{url}</span>}
+                            <span className={classNames("min-w-0 text-sm truncate", isSelected && url && "max-w-[60%]")}>
+                                {title}
+                            </span>
+                            {isSelected && url && (
+                                <span className="flex-1 min-w-0 text-[0.7rem] text-muted-foreground truncate">
+                                    {url}
+                                </span>
+                            )}
                         </div>
                     )
                 }

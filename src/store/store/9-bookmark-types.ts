@@ -12,6 +12,8 @@ interface BookmarkNodeBase {
     lastModified: number | null;
 }
 
+//---------------------------------------------------------------------------
+
 export interface BookmarkFolder extends BookmarkNodeBase {
     kind: "folder";
     childIds: BookmarkId[];
@@ -27,9 +29,13 @@ export interface BookmarkLink extends BookmarkNodeBase {
     icon: string | null;
 }
 
+//---------------------------------------------------------------------------
+
 export type BookmarkNode = BookmarkFolder | BookmarkLink;
 
 export type BookmarkNodes = Record<BookmarkId, BookmarkNode>;
+
+//---------------------------------------------------------------------------
 
 /** A whole bookmarks file: all nodes, plus the ids of the top-level items in file order. */
 export interface BookmarkDocument {
