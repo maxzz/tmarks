@@ -2,12 +2,15 @@ import { atom, getDefaultStore } from "jotai";
 import { atomFamily } from "jotai-family";
 
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
-import { readStoredBookmarks, writeStoredBookmarks } from "../3-local-storage-items";
+import { completeLegacyTreeMigration, readStoredBookmarks, writeStoredTree } from "../3-local-storage-items";
+import { loadIconCache, saveIconCache } from "../io/icon-cache";
+import { logDocumentStats } from "../io/document-stats";
 
 export type ViewMode = "list" | "grid";
 
 //---------------------------------------------------------------------------
-// Document state. Restored from localStorage at startup and saved after each change (see the end of this file).
+// Document state. The tree is restored from localStorage at startup, and the icons from IndexedDB shortly after (see
+// the end of this file). Both are saved after each change.
 
 const stored = readStoredBookmarks();
 
@@ -219,8 +222,33 @@ const persistedDocumentAtom = atom(
 );
 
 getDefaultStore().sub(persistedDocumentAtom, () => {
-    writeStoredBookmarks(getDefaultStore().get(persistedDocumentAtom));
+    const doc = getDefaultStore().get(persistedDocumentAtom);
+    // Icons are saved first, and the tree after them, so the stored tree never refers to an icon that is not stored.
+    void saveIconCache(doc.icons).then(() => writeStoredTree(doc));
 });
+
+/**
+ * Loads the icons from IndexedDB after startup. The tree is already shown, and icons appear as they load.
+ * Icons of the old format are converted and stored here too.
+ */
+async function restoreIcons(): Promise<void> {
+    try {
+        const { icons, saved } = await loadIconCache(getDefaultStore().get(bookmarkIconsAtom));
+        getDefaultStore().set(bookmarkIconsAtom, (current) => ({ ...icons, ...current }));
+
+        const doc = getDefaultStore().get(persistedDocumentAtom);
+        if (saved) {
+            completeLegacyTreeMigration(doc);
+        }
+        if (doc.rootIds.length > 0) {
+            logDocumentStats("restored from storage", doc);
+        }
+    } catch (e) {
+        console.error("Failed to restore icons", e);
+    }
+}
+
+void restoreIcons();
 
 //---------------------------------------------------------------------------
 
