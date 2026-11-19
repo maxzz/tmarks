@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { type BookmarkNode } from "../model/bookmark-types";
+import { type BookmarkNode } from "../2-main/bookmarks/model/bookmark-types";
 import {
     bookmarkNodesAtom,
     clearDialogOpenAtom,
@@ -9,7 +9,7 @@ import {
     importDialogOpenAtom,
     pendingDeleteIdsAtom,
     pendingImportAtom,
-} from "../store/bookmarks-atoms";
+} from "../2-main/bookmarks/store/bookmarks-atoms";
 import {
     appendImportAtom,
     cancelClearAtom,
@@ -18,18 +18,18 @@ import {
     confirmClearAtom,
     confirmDeleteAtom,
     replaceWithImportAtom,
-} from "../store/bookmarks-actions";
-import { focusBookmarksArea } from "./bookmark-ui-helpers";
+} from "../2-main/bookmarks/store/bookmarks-actions";
+import { focusBookmarksArea } from "../2-main/bookmarks/ui/bookmark-ui-helpers";
+import { EditItemDialog } from "../2-main/bookmarks/ui/edit-item-dialog";
 
 /** Confirmation and choice dialogs of the bookmarks area. Rendered at app level, so they also work over the Welcome page. */
 export function BookmarkDialogs() {
-    return (
-        <>
-            <ImportDialog />
-            <DeleteDialog />
-            <ClearDialog />
-        </>
-    );
+    return (<>
+        <ImportDialog />
+        <DeleteDialog />
+        <ClearDialog />
+        <EditItemDialog />
+    </>);
 }
 
 /** Shown when files are imported while bookmarks are already loaded: replace them, or add the files as folders. */
