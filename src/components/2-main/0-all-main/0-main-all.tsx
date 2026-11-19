@@ -4,7 +4,7 @@ import { type Layout } from "react-resizable-panels";
 import { appSettings } from "@/store/1-ui-settings";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
 import { bookmarksKeyDownAtom } from "../a-main-atoms";
-import { hasBookmarksAtom } from "../bookmarks/store/bookmarks-atoms";
+import { hasBookmarksAtom } from "../bookmarks/store/a-bookmarks-atoms";
 import { TreePanel } from "../bookmarks/ui/tree-panel";
 import { ItemsPanel } from "../bookmarks/ui/items-panel";
 /** Two panels: the folder tree on the left, the items of the selected folder on the right. */

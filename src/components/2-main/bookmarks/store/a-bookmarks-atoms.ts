@@ -1,7 +1,7 @@
 import { atom, getDefaultStore } from "jotai";
 import { atomFamily } from "jotai-family";
 import { readStoredBookmarks, writeStoredBookmarks } from "../io/bookmarks-local-storage";
-import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "../model/9-bookmark-types";
+import { type BookmarkDocument, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
 
 export type ViewMode = "list" | "grid";
 

@@ -1,6 +1,6 @@
 import { Folder, Globe } from "lucide-react";
 import { classNames } from "@/utils";
-import { type BookmarkNode } from "../model/9-bookmark-types";
+import { type BookmarkNode } from "../store/9-bookmark-types";
 
 /**
  * Preview of one item: the browser's inline icon (ICON) for bookmarks, a folder glyph for folders.
