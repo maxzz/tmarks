@@ -38,8 +38,8 @@ export const rootFolderIdsAtom = atom(
 //---------------------------------------------------------------------------
 // UI state
 
-// Each panel keeps its own selection. Selecting in the right panel does not move the tree's selection, and a tree
-// click clears the right panel's selection.
+// Each panel keeps its own selection. A click in one panel never changes the other panel's selection, so an item
+// selected in the right panel stays highlighted whenever its folder is shown there.
 
 /** Tree selection: the folder last clicked (or moved to with the arrows). Only tree actions change it. */
 export const treeSelectedIdAtom = atom<BookmarkId | null>(null);

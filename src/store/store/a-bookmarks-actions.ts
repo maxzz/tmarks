@@ -185,9 +185,6 @@ export const selectItemAtom = atom(
         set(selectionPanelAtom, "tree");
         set(treeSelectedIdAtom, id);
         set(treeSelectedIdsAtom, id === null ? new Set() : new Set([id]));
-        // A tree selection replaces the right panel's selection.
-        set(itemSelectedIdAtom, null);
-        set(itemSelectedIdsAtom, new Set());
         if (id === null) {
             return;
         }
@@ -219,11 +216,6 @@ export const clickItemAtom = atom(
         // Clicks in the right panel keep the panel on its current folder, even when the clicked item is a folder.
         const panelFolderId = get(currentFolderIdAtom);
         set(selectionPanelAtom, click.scope);
-        if (click.scope === "tree") {
-            // A tree click replaces the right panel's selection.
-            set(itemSelectedIdAtom, null);
-            set(itemSelectedIdsAtom, new Set());
-        }
         selectClickedItem(get, set, click);
         set(pinnedFolderAtom, click.scope === "items" ? { id: panelFolderId } : null);
     }
