@@ -5,7 +5,9 @@ import { downloadTextFile } from "../io/download-text-file";
 import { logDocumentStats } from "../io/document-stats";
 import { parseNetscapeBookmarks } from "../io/netscape-parse";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
+import { exportFileName, selectionDocument } from "../io/selection-export";
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
+import { selectionAfterClick, topmostIds } from "./b-selection-logic";
 import {
     bookmarkIconsAtom,
     bookmarkNodesAtom,
@@ -174,6 +176,26 @@ export const saveBookmarksAtom = atom(
     }
 );
 
+/**
+ * "Export": saves the given items as a bookmarks .html file, the same format as "Save bookmarks". A folder is
+ * exported with everything inside it. One item is named after its title; several get a dated name.
+ */
+export const exportItemsAtom = atom(
+    null,
+    (get, _set, ids: ReadonlySet<BookmarkId>) => {
+        const exported = selectionDocument({ nodes: get(bookmarkNodesAtom), rootIds: get(bookmarkRootIdsAtom), icons: get(bookmarkIconsAtom) }, ids);
+        if (exported.rootIds.length === 0) {
+            notice.info("Nothing to export. Select items first.");
+            return;
+        }
+
+        const stamp = new Date().toISOString().slice(0, 10);
+        downloadTextFile(exportFileName(exported, stamp), serializeNetscapeBookmarks(exported), "text/html");
+        const count = exported.rootIds.length;
+        notice.success(count === 1 ? "Exported 1 item." : `Exported ${count} items.`);
+    }
+);
+
 //---------------------------------------------------------------------------
 // Selection and expansion
 
@@ -207,8 +229,9 @@ export const selectItemAtom = atom(
 );
 
 /**
- * Click on a tree row (scope "tree") or an item (scope "items"). A plain click selects only that item,
- * Ctrl/Cmd-click toggles it in the selection, and Shift-click selects the range from the last clicked item.
+ * Click on a tree row (scope "tree") or an item (scope "items"). The rules are the Windows Explorer ones (see
+ * b-selection-logic.ts): a plain click selects only that item, Ctrl-click toggles it, Shift-click selects the range
+ * from the anchor, and Ctrl+Shift-click adds that range to the selection.
  */
 export const clickItemAtom = atom(
     null,
@@ -216,7 +239,12 @@ export const clickItemAtom = atom(
         // Clicks in the right panel keep the panel on its current folder, even when the clicked item is a folder.
         const panelFolderId = get(currentFolderIdAtom);
         set(selectionPanelAtom, click.scope);
-        selectClickedItem(get, set, click);
+        if (click.scope === "tree" && !click.ctrl && !click.shift) {
+            // A plain click on a folder also opens it in the tree.
+            set(selectItemAtom, click.id);
+        } else {
+            selectClickedItem(get, set, click);
+        }
         set(pinnedFolderAtom, click.scope === "items" ? { id: panelFolderId } : null);
     }
 );
@@ -247,39 +275,12 @@ function selectClickedItem(
     const isTree = click.scope === "tree";
     const idAtom = isTree ? treeSelectedIdAtom : itemSelectedIdAtom;
     const idsAtom = isTree ? treeSelectedIdsAtom : itemSelectedIdsAtom;
-    const anchor = get(idAtom);
+    const order = isTree ? get(visibleTreeIdsAtom) : get(currentItemIdsAtom);
 
-    if (click.shift && anchor !== null) {
-        const order = isTree ? get(visibleTreeIdsAtom) : get(currentItemIdsAtom);
-        const from = order.indexOf(anchor);
-        const to = order.indexOf(click.id);
-        if (from >= 0 && to >= 0) {
-            const [start, end] = from < to ? [from, to] : [to, from];
-            set(idsAtom, new Set(order.slice(start, end + 1)));
-            return;
-        }
-    }
-
-    if (click.ctrl) {
-        const next = new Set(get(idsAtom));
-        if (next.has(click.id)) {
-            next.delete(click.id);
-        } else {
-            next.add(click.id);
-        }
-        set(idsAtom, next);
-        set(idAtom, click.id);
-        return;
-    }
-
-    // A plain click in the right panel only selects. It does not expand or select anything in the tree.
-    if (!isTree) {
-        set(itemSelectedIdsAtom, new Set([click.id]));
-        set(itemSelectedIdAtom, click.id);
-        return;
-    }
-
-    set(selectItemAtom, click.id);
+    // Only this panel's selection changes. A click in the right panel never expands or selects anything in the tree.
+    const next = selectionAfterClick({ anchor: get(idAtom), selected: get(idsAtom) }, order, click.id, click);
+    set(idsAtom, new Set(next.selected));
+    set(idAtom, next.anchor);
 }
 
 export const toggleExpandedAtom = atom(
@@ -424,7 +425,7 @@ export const requestDeleteAtom = atom(
     null,
     (get, set, items: ReadonlySet<BookmarkId>) => {
         const nodes = get(bookmarkNodesAtom);
-        const ids = topmostSelectedIds(nodes, items);
+        const ids = topmostIds(nodes, items);
         if (ids.length > 0) {
             set(pendingDeleteIdsAtom, ids);
             set(deleteDialogOpenAtom, true);
@@ -580,23 +581,6 @@ function appendImportedFolders(current: BookmarkDocument, files: PendingImportFi
     }
 
     return { doc: { nodes, rootIds, icons }, folderIds };
-}
-
-/** Ids of the selected items that are not inside another selected folder, so each deletion removes its contents once. */
-function topmostSelectedIds(nodes: BookmarkNodes, selected: ReadonlySet<BookmarkId>): BookmarkId[] {
-    return [...selected].filter((id) => {
-        if (!nodes[id]) {
-            return false;
-        }
-        let parentId = nodes[id].parentId;
-        while (parentId !== null) {
-            if (selected.has(parentId)) {
-                return false;
-            }
-            parentId = nodes[parentId]?.parentId ?? null;
-        }
-        return true;
-    });
 }
 
 /** Removes a node and, for folders, everything inside it. Mutates the `nodes` copy passed in. */

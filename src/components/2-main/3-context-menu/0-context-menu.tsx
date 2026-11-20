@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ClipboardPaste, Copy, ExternalLink, Pencil, Scissors, Trash } from "lucide-react";
+import { ClipboardPaste, Copy, Download, ExternalLink, Pencil, Scissors, Trash } from "lucide-react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { nodeAtom } from "@/store/store/a-bookmarks-atoms";
@@ -11,13 +11,15 @@ import {
     cutContextItemAtom,
     deleteContextItemAtom,
     editContextItemAtom,
+    exportContextItemAtom,
     pasteContextItemAtom,
     restoreFocusAfterContextMenuAtom,
+    type ContextTarget,
 } from "./a-bookmark-context-actions";
 
 /**
- * Where the item is shown. The tree (`"tree"`, left) offers only "Delete".
- * The item list (`"items"`, right) offers "Open in new tab" (links only), "Edit" and "Delete".
+ * Where the item is shown. The tree (`"tree"`, left) offers Cut, Copy, Paste, Export and Delete. The item list
+ * (`"items"`, right) adds "Edit" and "Open in new tab" (links only).
  */
 export type BookmarkContextScope = "tree" | "items";
 
@@ -44,12 +46,14 @@ function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: Bookma
     const cut = useSetAtom(cutContextItemAtom);
     const copy = useSetAtom(copyContextItemAtom);
     const paste = useSetAtom(pasteContextItemAtom);
+    const exportItems = useSetAtom(exportContextItemAtom);
     const remove = useSetAtom(deleteContextItemAtom);
 
     if (!node) {
         return null;
     }
 
+    const target: ContextTarget = { id, scope };
     const isItemList = scope === "items";
 
     return (<>
@@ -69,11 +73,11 @@ function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: Bookma
 
         {isItemList && <ContextMenuSeparator />}
 
-        <ContextMenuItem onSelect={() => cut(id)}>
+        <ContextMenuItem onSelect={() => cut(target)}>
             <Scissors />
             Cut
         </ContextMenuItem>
-        <ContextMenuItem onSelect={() => copy(id)}>
+        <ContextMenuItem onSelect={() => copy(target)}>
             <Copy />
             Copy
         </ContextMenuItem>
@@ -84,7 +88,14 @@ function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: Bookma
 
         <ContextMenuSeparator />
 
-        <ContextMenuItem variant="destructive" onSelect={() => remove(id)}>
+        <ContextMenuItem onSelect={() => exportItems(target)}>
+            <Download />
+            Export
+        </ContextMenuItem>
+
+        <ContextMenuSeparator />
+
+        <ContextMenuItem variant="destructive" onSelect={() => remove(target)}>
             <Trash />
             Delete
         </ContextMenuItem>

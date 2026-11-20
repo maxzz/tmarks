@@ -1,7 +1,7 @@
 import { atom, type Getter } from "jotai";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
-import { bookmarkNodesAtom, currentFolderIdAtom, deleteDialogOpenAtom, editingIdAtom, selectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
-import { requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
+import { bookmarkNodesAtom, currentFolderIdAtom, deleteDialogOpenAtom, editingIdAtom, itemSelectedIdsAtom, treeSelectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
+import { exportItemsAtom, requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
 import { copyItemsAtom, cutItemsAtom, pasteIntoAtom } from "../5-clipboard/1-clipboard-atoms";
 import { focusBookmarksArea } from "../0-all-main/8-bookmark-ui-helpers";
 
@@ -10,48 +10,59 @@ import { focusBookmarksArea } from "../0-all-main/8-bookmark-ui-helpers";
 // The menu does not change the selection. Selecting a folder in the right panel would open it and remove the
 // row that was right-clicked, so the menu acts on the clicked item (or on the whole selection, see below).
 
+/** The row a menu was opened on, and the panel it is in. The menu acts on that panel's selection. */
+export interface ContextTarget {
+    id: BookmarkId;
+    scope: "tree" | "items";
+}
+
+/**
+ * The items a menu command acts on: the whole selection of the clicked row's panel when the row is part of it,
+ * otherwise only the clicked item. Each panel has its own selection (see a-bookmarks-atoms.ts), so a menu in the
+ * tree never acts on items selected in the right panel, and the other way round.
+ */
+function contextItemIds(get: Getter, target: ContextTarget): BookmarkId[] {
+    const selected = get(target.scope === "tree" ? treeSelectedIdsAtom : itemSelectedIdsAtom);
+    return selected.has(target.id) ? [...selected] : [target.id];
+}
+
 /** "Edit": opens the edit dialog for the clicked item. */
 export const editContextItemAtom = atom(
     null,
-    (get, set, id: BookmarkId) => {
+    (_get, set, id: BookmarkId) => {
         set(startEditAtom, id);
     }
 );
 
-/**
- * "Delete": asks for confirmation before deleting. When the clicked item is part of the selection, the whole
- * selection is deleted (so several items can go at once); otherwise only the clicked item is.
- */
+/** "Delete": asks for confirmation before deleting the items that `contextItemIds` gives. */
 export const deleteContextItemAtom = atom(
     null,
-    (get, set, id: BookmarkId) => {
-        const selected = get(selectedIdsAtom);
-        set(requestDeleteAtom, selected.has(id) ? selected : new Set([id]));
+    (get, set, target: ContextTarget) => {
+        set(requestDeleteAtom, new Set(contextItemIds(get, target)));
     }
 );
-
-/**
- * The items a menu command acts on: the whole selection when the clicked item is part of it, otherwise only the
- * clicked item. Same rule as "Delete".
- */
-function contextItemIds(get: Getter, id: BookmarkId): BookmarkId[] {
-    const selected = get(selectedIdsAtom);
-    return selected.has(id) ? [...selected] : [id];
-}
 
 /** "Cut": marks the clicked item (or the selection) to be moved by a later paste. */
 export const cutContextItemAtom = atom(
     null,
-    (get, set, id: BookmarkId) => {
-        set(cutItemsAtom, contextItemIds(get, id));
+    (get, set, target: ContextTarget) => {
+        set(cutItemsAtom, contextItemIds(get, target));
     }
 );
 
 /** "Copy": copies the clicked item (or the selection) for a later paste. */
 export const copyContextItemAtom = atom(
     null,
-    (get, set, id: BookmarkId) => {
-        set(copyItemsAtom, contextItemIds(get, id));
+    (get, set, target: ContextTarget) => {
+        set(copyItemsAtom, contextItemIds(get, target));
+    }
+);
+
+/** "Export": saves the clicked item (or the selection) as a bookmarks file. */
+export const exportContextItemAtom = atom(
+    null,
+    (get, set, target: ContextTarget) => {
+        set(exportItemsAtom, new Set(contextItemIds(get, target)));
     }
 );
 
