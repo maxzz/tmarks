@@ -101,6 +101,7 @@ export const importBookmarkFilesAtom = atom(
         }
 
         set(loadBookmarkDocumentAtom, mergeImportedFiles(found));
+        set(selectSoleFolderAtom);
         notice.success(`Imported ${countLinks(found.flatMap((entry) => Object.values(entry.doc.nodes)))} bookmarks from ${fileList}.`);
     }
 );
@@ -112,6 +113,7 @@ export const replaceWithImportAtom = atom(
         const pending = get(pendingImportAtom);
         set(importDialogOpenAtom, false);
         set(loadBookmarkDocumentAtom, mergeImportedFiles(pending));
+        set(selectSoleFolderAtom);
         notice.success(`Replaced the bookmarks with ${pending.map((entry) => `"${entry.name}"`).join(", ")}.`);
     }
 );
@@ -201,6 +203,21 @@ export const exportItemsAtom = atom(
 // Selection and expansion
 
 /** Selects one item (and expands its ancestors, and the item itself when it is a folder), so it is visible in the tree. */
+/**
+ * After an import into an empty app: if the loaded content is one top-level folder, selects it, so its contents
+ * show at once. Several top-level items leave the selection empty.
+ */
+export const selectSoleFolderAtom = atom(
+    null,
+    (get, set) => {
+        const rootIds = get(bookmarkRootIdsAtom);
+        const only = rootIds.length === 1 ? get(bookmarkNodesAtom)[rootIds[0]] : undefined;
+        if (only?.kind === "folder") {
+            set(selectItemAtom, only.id);
+        }
+    }
+);
+
 export const selectItemAtom = atom(
     null,
     (get, set, id: BookmarkId | null) => {
