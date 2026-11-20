@@ -5,6 +5,7 @@ import { downloadTextFile } from "../io/download-text-file";
 import { logDocumentStats } from "../io/document-stats";
 import { parseNetscapeBookmarks } from "../io/netscape-parse";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
+import { importedFolderTitle, wrapTopLevelLinks } from "../io/import-folders";
 import { exportFileName, selectionDocument } from "../io/selection-export";
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
 import { selectionAfterClick, topmostIds } from "./b-selection-logic";
@@ -99,7 +100,7 @@ export const importBookmarkFilesAtom = atom(
             return;
         }
 
-        set(loadBookmarkDocumentAtom, mergeBookmarkDocuments(found.map((entry) => entry.doc)));
+        set(loadBookmarkDocumentAtom, mergeImportedFiles(found));
         notice.success(`Imported ${countLinks(found.flatMap((entry) => Object.values(entry.doc.nodes)))} bookmarks from ${fileList}.`);
     }
 );
@@ -110,7 +111,7 @@ export const replaceWithImportAtom = atom(
     (get, set) => {
         const pending = get(pendingImportAtom);
         set(importDialogOpenAtom, false);
-        set(loadBookmarkDocumentAtom, mergeBookmarkDocuments(pending.map((entry) => entry.doc)));
+        set(loadBookmarkDocumentAtom, mergeImportedFiles(pending));
         notice.success(`Replaced the bookmarks with ${pending.map((entry) => `"${entry.name}"`).join(", ")}.`);
     }
 );
@@ -516,11 +517,17 @@ function isBookmarkHtmlFile(file: File): boolean {
     return /\.html?$/i.test(file.name) || file.type === "text/html";
 }
 
-function mergeBookmarkDocuments(docs: BookmarkDocument[]): BookmarkDocument {
+/**
+ * Joins imported files into one document for an empty app. Each file's top-level links go into a folder named after
+ * the file, so they show in the tree too (see import-folders.ts). Folders are kept as they are.
+ */
+function mergeImportedFiles(files: PendingImportFile[]): BookmarkDocument {
     const nodes: BookmarkNodes = {};
     const rootIds: BookmarkId[] = [];
     const icons: BookmarkIcons = {};
-    for (const doc of docs) {
+    const now = Math.floor(Date.now() / 1000);
+    for (const file of files) {
+        const doc = wrapTopLevelLinks(file.doc, importedFolderTitle(file.name), now, () => uuid());
         Object.assign(nodes, doc.nodes);
         rootIds.push(...doc.rootIds);
         Object.assign(icons, doc.icons);
@@ -570,7 +577,7 @@ function appendImportedFolders(current: BookmarkDocument, files: PendingImportFi
             kind: "folder",
             id: folderId,
             parentId: null,
-            title: file.name.replace(/\.html?$/i, "") || "Imported bookmarks",
+            title: importedFolderTitle(file.name),
             addDate: now,
             lastModified: now,
             childIds,
