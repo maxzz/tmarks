@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "@/store/store/9-bookmark-types";
-import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "@/store/store/a-bookmarks-atoms";
+import { currentFolderIdAtom, currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, openFolderAtom } from "@/store/store/a-bookmarks-actions";
 import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
@@ -14,7 +14,13 @@ import { isCutAtomFamily } from "../5-clipboard/1-clipboard-atoms";
 export function Panel_Items() {
     const viewMode = useAtomValue(viewModeAtom);
     const itemIds = useAtomValue(currentItemIdsAtom);
+    const folderId = useAtomValue(currentFolderIdAtom);
     const { showItemUrls } = useSnapshot(appSettings);
+
+    // Nothing is selected in the tree, so no folder is shown. The panel stays empty, with no header or message.
+    if (folderId === null) {
+        return <div tabIndex={-1} className="group/items h-full min-h-0 outline-none" />;
+    }
 
     return (
         // tabIndex lets a click on empty space focus the panel, so the selection keeps its focused look.
@@ -51,7 +57,7 @@ function ItemsPanelHeader({ count }: { count: number; }) {
 
     return (
         <div className="px-3 py-2 bg-muted/30 border-b flex items-center justify-between gap-2">
-            <span className="min-w-0 text-sm font-semibold truncate">{folder ? folder.title || "(untitled)" : "All bookmarks"}</span>
+            <span className="min-w-0 text-sm font-semibold truncate">{folder?.title || "(untitled)"}</span>
             <span className="shrink-0 text-xs text-muted-foreground">{count} {count === 1 ? "item" : "items"}</span>
         </div>
     );

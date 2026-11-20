@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { currentFolderIdAtom, selectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { copyItemsAtom, cutItemsAtom, pasteIntoAtom } from "./1-clipboard-atoms";
 
@@ -29,7 +30,13 @@ export const clipboardShortcutAtom = atom(
     null,
     (get, set, shortcut: ClipboardShortcut) => {
         if (shortcut === "paste") {
-            set(pasteIntoAtom, get(currentFolderIdAtom));
+            const folderId = get(currentFolderIdAtom);
+            if (folderId === null) {
+                // Nothing is shown in the right panel, so there is no folder to paste into.
+                notice.info("Select a folder to paste into.");
+                return;
+            }
+            set(pasteIntoAtom, folderId);
             return;
         }
 

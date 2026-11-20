@@ -180,8 +180,13 @@ function findDropTarget(x: number, y: number, ids: BookmarkId[]): DropTarget | n
 
     let placement: DropPlacement;
     if (el.dataset.dndTarget === "panel") {
-        // The tree's background is the top level. The items panel's background is the folder it shows.
-        placement = { kind: "end", parentId: zone === "tree" ? null : store.get(currentFolderIdAtom) };
+        // The tree's background is the top level. The items panel's background is the folder it shows. When no
+        // folder is shown the items panel is empty, so there is nothing to drop into.
+        const shown = store.get(currentFolderIdAtom);
+        if (zone === "items" && shown === null) {
+            return null;
+        }
+        placement = { kind: "end", parentId: zone === "tree" ? null : shown };
     } else {
         const node = el.dataset.dndId ? nodes[el.dataset.dndId] : undefined;
         if (!node) {
