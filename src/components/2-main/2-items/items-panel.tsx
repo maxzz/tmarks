@@ -5,7 +5,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "@/store/store/9-bookmark-types";
 import { currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, openFolderAtom } from "@/store/store/a-bookmarks-actions";
-import { BookmarkContextMenu } from "../3-context-menu/bookmark-context-menu";
+import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { openBookmarkLink, revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 
@@ -80,10 +80,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     return (
         <BookmarkContextMenu id={id} scope="items">
             <div
-                className={classNames(
-                    "px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default",
-                    isSelected ? selectedItemClass : "outline-none",
-                )}
+                className={classNames("px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none")}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
@@ -151,8 +148,13 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
             >
                 <ItemPreview node={node} className="size-4 rounded-sm" />
 
-                <span className="w-full text-xs line-clamp-2 wrap-break-word">{node.title || "(untitled)"}</span>
-                {node.kind === "link" && (showUrl || isSelected) && <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>}
+                <span className="w-full text-xs line-clamp-2 wrap-break-word">
+                    {node.title || "(untitled)"}
+                </span>
+                
+                {node.kind === "link" && (showUrl || isSelected) && (
+                    <span className="w-full text-[0.65rem] text-muted-foreground truncate">{node.url}</span>
+                )}
             </div>
         </BookmarkContextMenu>
     );

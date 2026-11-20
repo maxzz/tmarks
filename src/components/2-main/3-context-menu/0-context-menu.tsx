@@ -41,17 +41,17 @@ function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: Bookma
     const isItemList = scope === "items";
 
     return (<>
+        {isItemList && (
+            <ContextMenuItem onSelect={() => edit(id)}>
+                <Pencil className="p-px" />
+                Edit
+            </ContextMenuItem>
+        )}
+
         {isItemList && node.kind === "link" && (
             <ContextMenuItem onSelect={() => openBookmarkLink(node.url)}>
                 <ExternalLink />
                 Open in new tab
-            </ContextMenuItem>
-        )}
-
-        {isItemList && (
-            <ContextMenuItem onSelect={() => edit(id)}>
-                <Pencil />
-                Edit
             </ContextMenuItem>
         )}
 

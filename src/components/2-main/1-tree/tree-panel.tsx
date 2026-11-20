@@ -5,7 +5,7 @@ import { classNames } from "@/utils";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { childFolderIdsAtom, isExpandedAtom, isTreeSelectedAtom, nodeAtom, rootFolderIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, toggleExpandedAtom } from "@/store/store/a-bookmarks-actions";
-import { BookmarkContextMenu } from "../3-context-menu/bookmark-context-menu";
+import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 

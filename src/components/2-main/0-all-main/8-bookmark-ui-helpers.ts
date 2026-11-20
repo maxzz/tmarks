@@ -31,9 +31,5 @@ export function focusBookmarksArea(): void {
  * Returns `undefined` for rows that are not selected, so they get no ref work.
  */
 export function revealWhenSelected(isSelected: boolean): ((el: HTMLElement | null) => void) | undefined {
-    return isSelected
-        ? (el) => {
-            el?.scrollIntoView({ block: "nearest" });
-        }
-        : undefined;
+    return isSelected ? (el) => { el?.scrollIntoView({ block: "nearest" }); } : undefined;
 }

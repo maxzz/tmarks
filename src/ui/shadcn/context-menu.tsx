@@ -80,7 +80,7 @@ export function ContextMenuItem({ className, inset, variant = "default", ...rest
 }
 
 const itemClasses = "\
-group/context-menu-item relative px-1.5 py-1 text-sm \
+group/context-menu-item relative px-1.5 py-1 text-xs \
 \
 focus:text-accent-foreground \
 focus:bg-accent \
@@ -122,7 +122,7 @@ export function ContextMenuSubTrigger({ className, inset, children, ...rest }: C
 }
 
 const subTriggerClasses = "\
-px-1.5 py-1 text-sm \
+px-1.5 py-1 text-xs \
 \
 focus:text-accent-foreground \
 focus:bg-accent \
@@ -197,7 +197,7 @@ export function ContextMenuCheckboxItem({ className, children, checked, inset, .
 }
 
 const checkboxItemClasses = "\
-relative pr-8 pl-1.5 py-1 text-sm \
+relative pr-8 pl-1.5 py-1 text-xs \
 \
 focus:bg-accent \
 focus:text-accent-foreground \
@@ -237,7 +237,7 @@ export function ContextMenuRadioItem({ className, children, inset, ...rest }: Co
 const radioItemClasses = "\
 relative pr-8 pl-1.5 py-1 \
 \
-text-sm \
+text-xs \
 \
 focus:bg-accent \
 focus:text-accent-foreground \
