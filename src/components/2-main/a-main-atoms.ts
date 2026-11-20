@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { type KeyboardEvent } from "react";
 import { navigateTreeKeyAtom, requestDeleteSelectedAtom, startEditSelectedAtom } from "@/store/store/a-bookmarks-actions";
+import { clipboardShortcutAtom, clipboardShortcutOf } from "./5-clipboard/2-clipboard-keys";
 
 /**
  * Keyboard handling for the bookmarks area (attached to the element that wraps the panels).
@@ -14,6 +15,13 @@ export const bookmarksKeyDownAtom = atom(
             return;
         }
         if (!event.currentTarget.contains(event.target as Node)) {
+            return;
+        }
+
+        const shortcut = clipboardShortcutOf(event);
+        if (shortcut) {
+            event.preventDefault();
+            set(clipboardShortcutAtom, shortcut);
             return;
         }
 

@@ -1,7 +1,8 @@
-import { atom } from "jotai";
+import { atom, type Getter } from "jotai";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
-import { deleteDialogOpenAtom, editingIdAtom, selectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
+import { bookmarkNodesAtom, currentFolderIdAtom, deleteDialogOpenAtom, editingIdAtom, selectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
+import { copyItemsAtom, cutItemsAtom, pasteIntoAtom } from "../5-clipboard/1-clipboard-atoms";
 import { focusBookmarksArea } from "../0-all-main/8-bookmark-ui-helpers";
 
 //---------------------------------------------------------------------------
@@ -26,6 +27,40 @@ export const deleteContextItemAtom = atom(
     (get, set, id: BookmarkId) => {
         const selected = get(selectedIdsAtom);
         set(requestDeleteAtom, selected.has(id) ? selected : new Set([id]));
+    }
+);
+
+/**
+ * The items a menu command acts on: the whole selection when the clicked item is part of it, otherwise only the
+ * clicked item. Same rule as "Delete".
+ */
+function contextItemIds(get: Getter, id: BookmarkId): BookmarkId[] {
+    const selected = get(selectedIdsAtom);
+    return selected.has(id) ? [...selected] : [id];
+}
+
+/** "Cut": marks the clicked item (or the selection) to be moved by a later paste. */
+export const cutContextItemAtom = atom(
+    null,
+    (get, set, id: BookmarkId) => {
+        set(cutItemsAtom, contextItemIds(get, id));
+    }
+);
+
+/** "Copy": copies the clicked item (or the selection) for a later paste. */
+export const copyContextItemAtom = atom(
+    null,
+    (get, set, id: BookmarkId) => {
+        set(copyItemsAtom, contextItemIds(get, id));
+    }
+);
+
+/** "Paste": into the clicked folder. On a link, into the folder the right panel shows. */
+export const pasteContextItemAtom = atom(
+    null,
+    (get, set, id: BookmarkId) => {
+        const node = get(bookmarkNodesAtom)[id];
+        set(pasteIntoAtom, node?.kind === "folder" ? node.id : get(currentFolderIdAtom));
     }
 );
 

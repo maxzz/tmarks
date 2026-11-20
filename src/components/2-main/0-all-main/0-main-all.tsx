@@ -7,6 +7,7 @@ import { bookmarksKeyDownAtom } from "../a-main-atoms";
 import { hasBookmarksAtom } from "@/store/store/a-bookmarks-atoms";
 import { Panel_Tree } from "../1-tree/tree-panel";
 import { Panel_Items } from "../2-items/items-panel";
+import { BookmarkDndLayer } from "../4-dnd";
 
 /** Two panels: the folder tree on the left, the items of the selected folder on the right. */
 export function MainBody() {
@@ -19,6 +20,7 @@ export function MainBody() {
                 ? <PanelsLayout />
                 : <EmptyState />
             }
+            <BookmarkDndLayer />
 
         </div>
     );

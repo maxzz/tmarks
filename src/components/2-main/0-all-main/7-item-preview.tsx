@@ -24,6 +24,7 @@ export function ItemPreview({ node, className, glyphClassName = "size-full", ope
                         className="absolute inset-0 size-full object-contain"
                         src={icon}
                         alt=""
+                        draggable={false}
                         loading="lazy"
                         decoding="async"
                         onError={() => setFailedIcon(icon)}
