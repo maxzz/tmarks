@@ -9,6 +9,7 @@ import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { openBookmarkLink, revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 import { isDraggedAtom, startDragAtom } from "../4-dnd";
+import { isCutAtomFamily } from "../5-clipboard/1-clipboard-atoms";
 
 export function Panel_Items() {
     const viewMode = useAtomValue(viewModeAtom);
@@ -70,6 +71,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const isDragged = useAtomValue(isDraggedAtom(id));
+    const isCut = useAtomValue(isCutAtomFamily(id));
     const clickItem = useSetAtom(clickItemAtom);
     const openFolder = useSetAtom(openFolderAtom);
     const startDrag = useSetAtom(startDragAtom);
@@ -84,7 +86,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     return (
         <BookmarkContextMenu id={id} scope="items">
             <div
-                className={classNames("px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none", isDragged && "opacity-50")}
+                className={classNames("px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none", (isDragged || isCut) && "opacity-50")}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 data-dnd-target="row"
@@ -135,6 +137,7 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
     const isDragged = useAtomValue(isDraggedAtom(id));
+    const isCut = useAtomValue(isCutAtomFamily(id));
     const clickItem = useSetAtom(clickItemAtom);
     const openFolder = useSetAtom(openFolderAtom);
     const startDrag = useSetAtom(startDragAtom);
@@ -153,7 +156,7 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                 className={classNames(
                     "p-2 text-center hover:bg-muted border border-transparent rounded-md flex flex-col items-center gap-2 cursor-default",
                     isSelected ? selectedItemClass : "outline-none",
-                    isDragged && "opacity-50",
+                    (isDragged || isCut) && "opacity-50",
                 )}
                 data-dnd-target="row"
                 data-dnd-zone="items"

@@ -1,11 +1,19 @@
 import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ExternalLink, Pencil, Trash } from "lucide-react";
+import { ClipboardPaste, Copy, ExternalLink, Pencil, Scissors, Trash } from "lucide-react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { nodeAtom } from "@/store/store/a-bookmarks-atoms";
 import { openBookmarkLink } from "../0-all-main/8-bookmark-ui-helpers";
-import { deleteContextItemAtom, editContextItemAtom, restoreFocusAfterContextMenuAtom } from "./a-bookmark-context-actions";
+import { clipboardAtom } from "../5-clipboard/1-clipboard-atoms";
+import {
+    copyContextItemAtom,
+    cutContextItemAtom,
+    deleteContextItemAtom,
+    editContextItemAtom,
+    pasteContextItemAtom,
+    restoreFocusAfterContextMenuAtom,
+} from "./a-bookmark-context-actions";
 
 /**
  * Where the item is shown. The tree (`"tree"`, left) offers only "Delete".
@@ -31,7 +39,11 @@ export function BookmarkContextMenu({ id, scope, children }: { id: BookmarkId; s
 
 function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: BookmarkContextScope; }) {
     const node = useAtomValue(nodeAtom(id));
+    const clipboard = useAtomValue(clipboardAtom);
     const edit = useSetAtom(editContextItemAtom);
+    const cut = useSetAtom(cutContextItemAtom);
+    const copy = useSetAtom(copyContextItemAtom);
+    const paste = useSetAtom(pasteContextItemAtom);
     const remove = useSetAtom(deleteContextItemAtom);
 
     if (!node) {
@@ -56,6 +68,21 @@ function BookmarkContextMenuItems({ id, scope }: { id: BookmarkId; scope: Bookma
         )}
 
         {isItemList && <ContextMenuSeparator />}
+
+        <ContextMenuItem onSelect={() => cut(id)}>
+            <Scissors />
+            Cut
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => copy(id)}>
+            <Copy />
+            Copy
+        </ContextMenuItem>
+        <ContextMenuItem disabled={clipboard === null} onSelect={() => paste(id)}>
+            <ClipboardPaste />
+            Paste
+        </ContextMenuItem>
+
+        <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" onSelect={() => remove(id)}>
             <Trash />
