@@ -8,6 +8,7 @@ import { clickItemAtom, toggleExpandedAtom } from "@/store/store/a-bookmarks-act
 import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
+import { isDraggedAtom, startDragAtom } from "../4-dnd";
 
 /** The folder tree. Only folders appear here; links are listed in the right panel. */
 export function Panel_Tree() {
@@ -15,7 +16,8 @@ export function Panel_Tree() {
 
     return (
         // tabIndex lets a click on empty space focus the tree, so the selection keeps its focused look.
-        <div role="tree" aria-label="Bookmarks" tabIndex={-1} className="group/tree py-1 h-full select-none overflow-auto outline-none">
+        // Dropping on the empty space below the rows adds to the top level (data-dnd-* attributes, see 4-dnd).
+        <div role="tree" aria-label="Bookmarks" tabIndex={-1} data-dnd-target="panel" data-dnd-zone="tree" data-dnd-scroll className="group/tree py-1 h-full select-none overflow-auto outline-none">
             {rootIds.map(
                 (id) => (
                     <TreeRow key={id} id={id} depth={0} />
@@ -32,6 +34,8 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
     const isSelected = useAtomValue(isTreeSelectedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
+    const isDragged = useAtomValue(isDraggedAtom(id));
+    const startDrag = useSetAtom(startDragAtom);
 
     if (node?.kind !== "folder") {
         return null;
@@ -48,10 +52,15 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                         isSelected
                             ? "outline outline-border text-foreground bg-muted group-focus-within/tree:bg-primary/15 group-focus-within/tree:outline-primary/40 group-focus-within/tree:hover:bg-primary/15"
                             : "outline-none",
+                        isDragged && "opacity-50",
                     )}
                     style={{ paddingLeft: `${depth * 0.75 + 0.375}rem` }}
                     tabIndex={-1}
                     ref={revealWhenSelected(isSelected)}
+                    data-dnd-target="row"
+                    data-dnd-zone="tree"
+                    data-dnd-id={id}
+                    onPointerDown={(e) => startDrag({ event: e, id, zone: "tree" })}
                     onClick={(e) => clickItem({ id, scope: "tree", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
                     title={node.title}
                     aria-selected={isSelected}

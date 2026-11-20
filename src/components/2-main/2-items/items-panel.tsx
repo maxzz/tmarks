@@ -8,6 +8,7 @@ import { clickItemAtom, openFolderAtom } from "@/store/store/a-bookmarks-actions
 import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { openBookmarkLink, revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
+import { isDraggedAtom, startDragAtom } from "../4-dnd";
 
 export function Panel_Items() {
     const viewMode = useAtomValue(viewModeAtom);
@@ -19,7 +20,8 @@ export function Panel_Items() {
         <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
             <ItemsPanelHeader count={itemIds.length} />
 
-            <div className="flex-1 p-2 min-h-0 overflow-auto">
+            {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
+            <div className="flex-1 p-2 min-h-0 overflow-auto" data-dnd-target="panel" data-dnd-zone="items" data-dnd-scroll>
                 {itemIds.length === 0
                     ? <EmptyFolder />
                     : viewMode === "grid"
@@ -67,8 +69,10 @@ function EmptyFolder() {
 function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
+    const isDragged = useAtomValue(isDraggedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
     const openFolder = useSetAtom(openFolderAtom);
+    const startDrag = useSetAtom(startDragAtom);
 
     if (!node) {
         return null;
@@ -80,9 +84,14 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     return (
         <BookmarkContextMenu id={id} scope="items">
             <div
-                className={classNames("px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none")}
+                className={classNames("px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none", isDragged && "opacity-50")}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
+                data-dnd-target="row"
+                data-dnd-zone="items"
+                data-dnd-id={id}
+                data-dnd-axis="y"
+                onPointerDown={(e) => startDrag({ event: e, id, zone: "items" })}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
                 onDoubleClick={() => openItem(node, openFolder)}
                 aria-selected={isSelected}
@@ -125,8 +134,10 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
 function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     const node = useAtomValue(nodeAtom(id));
     const isSelected = useAtomValue(isSelectedAtom(id));
+    const isDragged = useAtomValue(isDraggedAtom(id));
     const clickItem = useSetAtom(clickItemAtom);
     const openFolder = useSetAtom(openFolderAtom);
+    const startDrag = useSetAtom(startDragAtom);
 
     if (!node) {
         return null;
@@ -142,7 +153,13 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                 className={classNames(
                     "p-2 text-center hover:bg-muted border border-transparent rounded-md flex flex-col items-center gap-2 cursor-default",
                     isSelected ? selectedItemClass : "outline-none",
+                    isDragged && "opacity-50",
                 )}
+                data-dnd-target="row"
+                data-dnd-zone="items"
+                data-dnd-id={id}
+                data-dnd-axis="x"
+                onPointerDown={(e) => startDrag({ event: e, id, zone: "items" })}
                 onClick={(e) => clickItem({ id, scope: "items", ctrl: e.ctrlKey || e.metaKey, shift: e.shiftKey })}
                 onDoubleClick={() => openItem(node, openFolder)}
             >
