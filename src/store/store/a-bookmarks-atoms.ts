@@ -5,6 +5,8 @@ import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type Bookma
 import { completeLegacyTreeMigration, readStoredBookmarks, writeStoredTree } from "../3-local-storage-items";
 import { loadIconCache, saveIconCache } from "../io/icon-cache";
 import { logDocumentStats } from "../io/document-stats";
+import { pruneViewState, restoredViewState, type ViewState } from "../view-state/0-view-state-logic";
+import { readStoredViewState, writeStoredViewState } from "../view-state/1-view-state-storage";
 
 export type ViewMode = "list" | "grid";
 
@@ -13,6 +15,9 @@ export type ViewMode = "list" | "grid";
 // the end of this file). Both are saved after each change.
 
 const stored = readStoredBookmarks();
+
+/** The open folders and the selected folder from the last session (see view-state/). Checked against the restored tree. */
+const restoredView = restoredViewState(readStoredViewState(), stored.nodes, stored.rootIds);
 
 export const bookmarkNodesAtom = atom<BookmarkNodes>(stored.nodes);
 export const bookmarkRootIdsAtom = atom<BookmarkId[]>(stored.rootIds);
@@ -42,9 +47,9 @@ export const rootFolderIdsAtom = atom(
 // selected in the right panel stays highlighted whenever its folder is shown there.
 
 /** Tree selection: the folder last clicked (or moved to with the arrows). Only tree actions change it. */
-export const treeSelectedIdAtom = atom<BookmarkId | null>(null);
+export const treeSelectedIdAtom = atom<BookmarkId | null>(restoredView.selectedId);
 /** Every selected tree row. Plain click selects one; Ctrl/Cmd-click and Shift-click add to it. */
-export const treeSelectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
+export const treeSelectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set(restoredView.selectedId === null ? [] : [restoredView.selectedId]));
 
 /** Right panel selection: the item last clicked. Only right-panel clicks change it. */
 export const itemSelectedIdAtom = atom<BookmarkId | null>(null);
@@ -62,8 +67,8 @@ export const selectedIdsAtom = atom((get): ReadonlySet<BookmarkId> =>
     get(selectionPanelAtom) === "tree" ? get(treeSelectedIdsAtom) : get(itemSelectedIdsAtom)
 );
 
-/** Folders that are open in the tree. The top-level folders start open. */
-export const expandedIdsAtom = atom<ReadonlySet<BookmarkId>>(topLevelFolderIds(stored));
+/** Folders that are open in the tree. At the first run the top-level folders are open; after that, the saved ones. */
+export const expandedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set(restoredView.expandedIds));
 export const viewModeAtom = atom<ViewMode>("list");
 
 /** Id of the item being edited in the F2 dialog, or `null` when the dialog is closed. */
@@ -283,9 +288,22 @@ async function restoreIcons(): Promise<void> {
 void restoreIcons();
 
 //---------------------------------------------------------------------------
+// Persistence of the view: the folders open in the tree, and the folder selected there. Saved after each change, from
+// a store subscription like the document above. Ids that are no longer in the tree are left out of what is saved.
 
-function topLevelFolderIds(doc: BookmarkDocument): Set<BookmarkId> {
-    return new Set(
-        doc.rootIds.filter((id) => doc.nodes[id]?.kind === "folder")
-    );
-}
+const persistedViewAtom = atom((get): ViewState => pruneViewState(
+    { expandedIds: [...get(expandedIdsAtom)], selectedId: get(treeSelectedIdAtom) },
+    get(bookmarkNodesAtom),
+));
+
+let lastSavedView = "";
+
+getDefaultStore().sub(persistedViewAtom, () => {
+    const view = getDefaultStore().get(persistedViewAtom);
+    const json = JSON.stringify(view);
+    // Skips the write when only the tree changed, so the view is not rewritten on every edit.
+    if (json !== lastSavedView) {
+        lastSavedView = json;
+        writeStoredViewState(view);
+    }
+});
