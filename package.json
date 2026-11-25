@@ -1,7 +1,7 @@
 {
-    "name": "pm-piggyback",
+    "name": "tmarks",
     "version": "0.26.1",
-    "description": "React template with Shadcn UI, Jotai, and Valtio",
+    "description": "Bookmarks manager",
     "private": true,
     "type": "module",
     "devDependencies": {
