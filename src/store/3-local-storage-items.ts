@@ -1,4 +1,3 @@
-import { notice } from "@/ui/local-ui/7-toaster";
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkLink, type BookmarkNode, type BookmarkNodes } from "./store/9-bookmark-types";
 import { addIcon } from "./io/icon-id";
 
@@ -38,7 +37,7 @@ type LegacyLink = Omit<BookmarkLink, "iconId"> & { icon?: string | null; };
 
 /**
  * Converts the old format in memory: each link's inline `icon` moves into the icon cache.
- * Nothing is written here; `completeLegacyTreeMigration` removes the old data once the icons are stored.
+ * Nothing is written here; `removeStoredBookmarks` removes the old data once it is stored in the new place.
  */
 function convertLegacyBookmarks(raw: string): BookmarkDocument {
     const parsed = JSON.parse(raw) as { nodes?: unknown; rootIds?: unknown; };
@@ -62,38 +61,10 @@ function convertLegacyBookmarks(raw: string): BookmarkDocument {
     return { nodes, rootIds: parsed.rootIds as BookmarkId[], icons };
 }
 
-/**
- * Finishes the conversion of the old format, once its icons are in IndexedDB: stores the tree in the new format
- * and removes the old tree. Does nothing when there is no old tree.
- */
-export function completeLegacyTreeMigration(doc: BookmarkDocument): void {
-    if (localStorage.getItem(LEGACY_TREE_KEY) === null) {
-        return;
-    }
-    if (writeStoredTree(doc)) {
-        localStorage.removeItem(LEGACY_TREE_KEY);
-    }
-}
-
-let storageFull = false;
-
-/**
- * Keeps the bookmark tree in localStorage, so it survives a reload. Icons are not included. Returns `false` when
- * the browser refused the write.
- */
-export function writeStoredTree(doc: BookmarkDocument): boolean {
-    try {
-        localStorage.setItem(TREE_KEY, JSON.stringify({ nodes: doc.nodes, rootIds: doc.rootIds }));
-        storageFull = false;
-        return true;
-    } catch (e) {
-        console.error("Failed to store bookmarks", e);
-        if (!storageFull) {
-            storageFull = true;
-            notice.error("The bookmarks are too large to keep in this browser. They will be lost on reload.");
-        }
-        return false;
-    }
+/** Removes the tree of both formats, once it has been moved to the tabs in IndexedDB (see store/tabs). */
+export function removeStoredBookmarks(): void {
+    localStorage.removeItem(TREE_KEY);
+    localStorage.removeItem(LEGACY_TREE_KEY);
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

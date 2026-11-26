@@ -1,12 +1,12 @@
 import { atom, getDefaultStore, type Getter, type Setter } from "jotai";
 import { notice } from "@/ui/local-ui/7-toaster";
-import { uuid } from "@/utils/uuid";
 import { downloadTextFile } from "../io/download-text-file";
 import { logDocumentStats } from "../io/document-stats";
 import { parseNetscapeBookmarks } from "../io/netscape-parse";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
-import { importedFolderTitle, wrapTopLevelLinks } from "../io/import-folders";
 import { exportFileName, selectionDocument } from "../io/selection-export";
+import { type OpenedFile } from "../tabs/0-tabs-types";
+import { openFilesInTabsAtom } from "../tabs/3-tabs-actions";
 import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
 import { selectionAfterClick, topmostIds } from "./b-selection-logic";
 import {
@@ -21,14 +21,10 @@ import {
     editingIdAtom,
     editingNodeAtom,
     expandedIdsAtom,
-    hasBookmarksAtom,
-    importDialogOpenAtom,
     loadLogAtom,
     pendingDeleteIdsAtom,
     currentFolderIdAtom,
-    pendingImportAtom,
     pinnedFolderAtom,
-    type PendingImportFile,
     itemSelectedIdAtom,
     itemSelectedIdsAtom,
     selectedIdAtom,
@@ -56,13 +52,10 @@ export const loadBookmarkDocumentAtom = atom(
     }
 );
 
-/**
- * Reads one or more dropped or picked files. With nothing loaded they become the content; otherwise the
- * user is asked whether to replace the content or add the files as folders (see the import dialog).
- */
+/** Reads one or more dropped or picked files, and opens each one in its own tab (see store/tabs). */
 export const importBookmarkFilesAtom = atom(
     null,
-    async (get, set, files: File[]) => {
+    async (_get, set, files: File[]) => {
         const candidates = files.filter(isBookmarkHtmlFile);
         if (candidates.length === 0) {
             notice.info("Unsupported file. Please use a bookmarks .html file exported from Chrome or Opera.");
@@ -71,7 +64,7 @@ export const importBookmarkFilesAtom = atom(
 
         const fileList = candidates.map((file) => `"${file.name}"`).join(", ");
 
-        let entries: PendingImportFile[];
+        let entries: OpenedFile[];
         try {
             entries = await Promise.all(candidates.map(async (file) => {
                 const html = await file.text();
@@ -94,54 +87,9 @@ export const importBookmarkFilesAtom = atom(
             return;
         }
 
-        if (get(hasBookmarksAtom)) {
-            set(pendingImportAtom, found);
-            set(importDialogOpenAtom, true);
-            return;
-        }
-
-        set(loadBookmarkDocumentAtom, mergeImportedFiles(found));
-        set(selectSoleFolderAtom);
-        notice.success(`Imported ${countLinks(found.flatMap((entry) => Object.values(entry.doc.nodes)))} bookmarks from ${fileList}.`);
-    }
-);
-
-/** Choice in the import dialog: replace everything with the imported files. */
-export const replaceWithImportAtom = atom(
-    null,
-    (get, set) => {
-        const pending = get(pendingImportAtom);
-        set(importDialogOpenAtom, false);
-        set(loadBookmarkDocumentAtom, mergeImportedFiles(pending));
-        set(selectSoleFolderAtom);
-        notice.success(`Replaced the bookmarks with ${pending.map((entry) => `"${entry.name}"`).join(", ")}.`);
-    }
-);
-
-/** Choice in the import dialog: keep what is loaded and add each imported file as a folder at the end. */
-export const appendImportAtom = atom(
-    null,
-    (get, set) => {
-        const pending = get(pendingImportAtom);
-        const current: BookmarkDocument = { nodes: get(bookmarkNodesAtom), rootIds: get(bookmarkRootIdsAtom), icons: get(bookmarkIconsAtom) };
-        const { doc, folderIds } = appendImportedFolders(current, pending, Math.floor(Date.now() / 1000));
-
-        set(importDialogOpenAtom, false);
-        set(bookmarkNodesAtom, doc.nodes);
-        set(bookmarkRootIdsAtom, doc.rootIds);
-        set(bookmarkIconsAtom, doc.icons);
-
-        if (folderIds.length > 0) {
-            set(selectItemAtom, folderIds[0]);
-        }
-        notice.success(`Added ${pending.length === 1 ? "a folder" : `${pending.length} folders`} with the imported bookmarks at the end.`);
-    }
-);
-
-export const cancelImportAtom = atom(
-    null,
-    (_get, set) => {
-        set(importDialogOpenAtom, false);
+        set(openFilesInTabsAtom, found);
+        const tabs = found.length === 1 ? "a new tab" : `${found.length} new tabs`;
+        notice.success(`Opened ${countLinks(found.flatMap((entry) => Object.values(entry.doc.nodes)))} bookmarks from ${fileList} in ${tabs}.`);
     }
 );
 
@@ -162,22 +110,7 @@ export const openImportPickerAtom = atom(
 );
 
 //---------------------------------------------------------------------------
-// Saving
-
-export const saveBookmarksAtom = atom(
-    null,
-    (get) => {
-        const rootIds = get(bookmarkRootIdsAtom);
-        if (rootIds.length === 0) {
-            notice.info("Nothing to save yet. Import a bookmarks file first.");
-            return;
-        }
-
-        const html = serializeNetscapeBookmarks({ nodes: get(bookmarkNodesAtom), rootIds, icons: get(bookmarkIconsAtom) });
-        const stamp = new Date().toISOString().slice(0, 10);
-        downloadTextFile(`bookmarks-${stamp}.html`, html, "text/html");
-    }
-);
+// Exporting. Saving a whole tab is in store/tabs.
 
 /**
  * "Export": saves the given items as a bookmarks .html file, the same format as "Save bookmarks". A folder is
@@ -203,21 +136,6 @@ export const exportItemsAtom = atom(
 // Selection and expansion
 
 /** Selects one item (and expands its ancestors, and the item itself when it is a folder), so it is visible in the tree. */
-/**
- * After an import into an empty app: if the loaded content is one top-level folder, selects it, so its contents
- * show at once. Several top-level items leave the selection empty.
- */
-export const selectSoleFolderAtom = atom(
-    null,
-    (get, set) => {
-        const rootIds = get(bookmarkRootIdsAtom);
-        const only = rootIds.length === 1 ? get(bookmarkNodesAtom)[rootIds[0]] : undefined;
-        if (only?.kind === "folder") {
-            set(selectItemAtom, only.id);
-        }
-    }
-);
-
 export const selectItemAtom = atom(
     null,
     (get, set, id: BookmarkId | null) => {
@@ -534,24 +452,6 @@ function isBookmarkHtmlFile(file: File): boolean {
     return /\.html?$/i.test(file.name) || file.type === "text/html";
 }
 
-/**
- * Joins imported files into one document for an empty app. Each file's top-level links go into a folder named after
- * the file, so they show in the tree too (see import-folders.ts). Folders are kept as they are.
- */
-function mergeImportedFiles(files: PendingImportFile[]): BookmarkDocument {
-    const nodes: BookmarkNodes = {};
-    const rootIds: BookmarkId[] = [];
-    const icons: BookmarkIcons = {};
-    const now = Math.floor(Date.now() / 1000);
-    for (const file of files) {
-        const doc = wrapTopLevelLinks(file.doc, importedFolderTitle(file.name), now, () => uuid());
-        Object.assign(nodes, doc.nodes);
-        rootIds.push(...doc.rootIds);
-        Object.assign(icons, doc.icons);
-    }
-    return { nodes, rootIds, icons };
-}
-
 /** The icons that at least one link still refers to. Returns `icons` itself when nothing would be dropped. */
 function keepReferencedIcons(nodes: BookmarkNodes, icons: BookmarkIcons): BookmarkIcons {
     const kept: BookmarkIcons = {};
@@ -561,50 +461,6 @@ function keepReferencedIcons(nodes: BookmarkNodes, icons: BookmarkIcons): Bookma
         }
     }
     return Object.keys(kept).length === Object.keys(icons).length ? icons : kept;
-}
-
-/**
- * Adds each imported file as a new top-level folder after the current items. The folder takes the file name,
- * and the file's top-level items move inside it. The "Bookmarks bar" flag is dropped, since the folder is no longer the bar.
- */
-function appendImportedFolders(current: BookmarkDocument, files: PendingImportFile[], now: number): { doc: BookmarkDocument; folderIds: BookmarkId[]; } {
-    const nodes: BookmarkNodes = { ...current.nodes };
-    const rootIds = [...current.rootIds];
-    const icons: BookmarkIcons = { ...current.icons };
-    const folderIds: BookmarkId[] = [];
-
-    for (const file of files) {
-        const folderId = uuid();
-        const childIds: BookmarkId[] = [];
-        Object.assign(nodes, file.doc.nodes);
-        Object.assign(icons, file.doc.icons);
-
-        for (const id of file.doc.rootIds) {
-            const node = nodes[id];
-            if (!node) {
-                continue;
-            }
-            nodes[id] = node.kind === "folder"
-                ? { ...node, parentId: folderId, isToolbar: false }
-                : { ...node, parentId: folderId };
-            childIds.push(id);
-        }
-
-        nodes[folderId] = {
-            kind: "folder",
-            id: folderId,
-            parentId: null,
-            title: importedFolderTitle(file.name),
-            addDate: now,
-            lastModified: now,
-            childIds,
-            isToolbar: false,
-        };
-        rootIds.push(folderId);
-        folderIds.push(folderId);
-    }
-
-    return { doc: { nodes, rootIds, icons }, folderIds };
 }
 
 /** Removes a node and, for folders, everything inside it. Mutates the `nodes` copy passed in. */

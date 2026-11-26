@@ -6,6 +6,7 @@ import { AllDialogs } from './1-globals';
 import { AppPages } from '../5-welcome';
 import { Header } from '../1-header';
 import { MainBody } from '../2-main';
+import { TabsArea } from '../2-main/6-tabs/0-tabs-area';
 import { Section3_Footer } from '../3-footer';
 
 export function App() {
@@ -20,7 +21,9 @@ export function App() {
                 <Header />
 
                 <div className="min-h-0 h-full">
-                    <MainBody />
+                    <TabsArea>
+                        <MainBody />
+                    </TabsArea>
                 </div>
 
                 <Section3_Footer />

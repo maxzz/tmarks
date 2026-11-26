@@ -11,6 +11,7 @@ import {
 import {
     type HistoryCommand,
     type HistorySnapshot,
+    type HistoryStacks,
     isSameTree,
     keepExistingId,
     keepExistingIds,
@@ -105,6 +106,32 @@ export const redoAtom = atom(
         set(redoStackAtom, redoStack.slice(0, -1));
         set(undoStackAtom, pushStep(get(undoStackAtom), readDocument(get)));
         applySnapshot(get, set, target);
+    }
+);
+
+//---------------------------------------------------------------------------
+// Switching documents (see store/tabs). The stacks belong to the document that is shown, so a tab takes them along
+// when it is hidden and gives them back when it is shown again.
+
+/** Records any change not yet recorded, and returns the stacks of the document that is shown now. */
+export const takeHistoryAtom = atom(
+    null,
+    (get, set): HistoryStacks => {
+        recordPendingChange(get, set);
+        return { undo: get(undoStackAtom), redo: get(redoStackAtom) };
+    }
+);
+
+/**
+ * Installs the stacks of the document that was just put into the document atoms. That document becomes the
+ * recorded state, so loading it is not itself recorded as a change.
+ */
+export const putHistoryAtom = atom(
+    null,
+    (get, set, stacks: HistoryStacks) => {
+        set(undoStackAtom, stacks.undo);
+        set(redoStackAtom, stacks.redo);
+        committed = readDocument(get);
     }
 );
 

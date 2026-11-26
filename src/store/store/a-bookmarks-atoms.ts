@@ -1,29 +1,19 @@
-import { atom, getDefaultStore } from "jotai";
+import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
 
-import { type BookmarkDocument, type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
-import { completeLegacyTreeMigration, readStoredBookmarks, writeStoredTree } from "../3-local-storage-items";
-import { loadIconCache, saveIconCache } from "../io/icon-cache";
-import { logDocumentStats } from "../io/document-stats";
-import { pruneViewState, restoredViewState, type ViewState } from "../view-state/0-view-state-logic";
-import { readStoredViewState, writeStoredViewState } from "../view-state/1-view-state-storage";
+import { type BookmarkIcons, type BookmarkId, type BookmarkNode, type BookmarkNodes } from "./9-bookmark-types";
 
 export type ViewMode = "list" | "grid";
 
 //---------------------------------------------------------------------------
-// Document state. The tree is restored from localStorage at startup, and the icons from IndexedDB shortly after (see
-// the end of this file). Both are saved after each change.
+// Document state: the document of the shown tab. The tabs (see store/tabs) fill these atoms at startup and when
+// another tab is shown, and save them after each change.
 
-const stored = readStoredBookmarks();
-
-/** The open folders and the selected folder from the last session (see view-state/). Checked against the restored tree. */
-const restoredView = restoredViewState(readStoredViewState(), stored.nodes, stored.rootIds);
-
-export const bookmarkNodesAtom = atom<BookmarkNodes>(stored.nodes);
-export const bookmarkRootIdsAtom = atom<BookmarkId[]>(stored.rootIds);
+export const bookmarkNodesAtom = atom<BookmarkNodes>({});
+export const bookmarkRootIdsAtom = atom<BookmarkId[]>([]);
 
 /** The icon cache. Links refer to an entry by id, so an icon shared by many bookmarks is kept once. */
-export const bookmarkIconsAtom = atom<BookmarkIcons>(stored.icons);
+export const bookmarkIconsAtom = atom<BookmarkIcons>({});
 
 /** What was loaded this session (imports and the restore at startup), as titled in the console statistics. */
 export const loadLogAtom = atom<string[]>([]);
@@ -47,9 +37,9 @@ export const rootFolderIdsAtom = atom(
 // selected in the right panel stays highlighted whenever its folder is shown there.
 
 /** Tree selection: the folder last clicked (or moved to with the arrows). Only tree actions change it. */
-export const treeSelectedIdAtom = atom<BookmarkId | null>(restoredView.selectedId);
+export const treeSelectedIdAtom = atom<BookmarkId | null>(null);
 /** Every selected tree row. Plain click selects one; Ctrl/Cmd-click and Shift-click add to it. */
-export const treeSelectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set(restoredView.selectedId === null ? [] : [restoredView.selectedId]));
+export const treeSelectedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
 
 /** Right panel selection: the item last clicked. Only right-panel clicks change it. */
 export const itemSelectedIdAtom = atom<BookmarkId | null>(null);
@@ -67,8 +57,8 @@ export const selectedIdsAtom = atom((get): ReadonlySet<BookmarkId> =>
     get(selectionPanelAtom) === "tree" ? get(treeSelectedIdsAtom) : get(itemSelectedIdsAtom)
 );
 
-/** Folders that are open in the tree. At the first run the top-level folders are open; after that, the saved ones. */
-export const expandedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set(restoredView.expandedIds));
+/** Folders that are open in the tree. */
+export const expandedIdsAtom = atom<ReadonlySet<BookmarkId>>(new Set<BookmarkId>());
 export const viewModeAtom = atom<ViewMode>("list");
 
 /** Id of the item being edited in the F2 dialog, or `null` when the dialog is closed. */
@@ -85,15 +75,6 @@ export const editDraftAtom = atom<EditDraft>({ isLink: false, title: "", url: ""
 
 // Confirmation dialogs. Each dialog keeps its content in its own atom and tracks open/closed separately,
 // so the content does not empty while the dialog animates closed.
-
-/** Imported files waiting for the user to choose between replacing the loaded bookmarks and adding them. */
-export interface PendingImportFile {
-    name: string;
-    doc: BookmarkDocument;
-}
-
-export const importDialogOpenAtom = atom(false);
-export const pendingImportAtom = atom<PendingImportFile[]>([]);
 
 /** Top-most selected items waiting for confirmation before they are deleted. */
 export const deleteDialogOpenAtom = atom(false);
@@ -244,66 +225,3 @@ export const visibleTreeIdsAtom = atom(
         return out;
     }
 );
-
-//---------------------------------------------------------------------------
-// Persistence: the document is written after every change, from a store subscription (not from React)
-
-const persistedDocumentAtom = atom(
-    (get): BookmarkDocument => ({
-        nodes: get(bookmarkNodesAtom),
-        rootIds: get(bookmarkRootIdsAtom),
-        icons: get(bookmarkIconsAtom),
-    })
-);
-
-getDefaultStore().sub(persistedDocumentAtom, () => {
-    const doc = getDefaultStore().get(persistedDocumentAtom);
-    // Icons are saved first, and the tree after them, so the stored tree never refers to an icon that is not stored.
-    void saveIconCache(doc.icons).then(() => writeStoredTree(doc));
-});
-
-/**
- * Loads the icons from IndexedDB after startup. The tree is already shown, and icons appear as they load.
- * Icons of the old format are converted and stored here too.
- */
-async function restoreIcons(): Promise<void> {
-    try {
-        const { icons, saved } = await loadIconCache(getDefaultStore().get(bookmarkIconsAtom));
-        getDefaultStore().set(bookmarkIconsAtom, (current) => ({ ...icons, ...current }));
-
-        const doc = getDefaultStore().get(persistedDocumentAtom);
-        if (saved) {
-            completeLegacyTreeMigration(doc);
-        }
-        if (doc.rootIds.length > 0) {
-            const title = "restored from storage";
-            logDocumentStats(title, doc);
-            getDefaultStore().set(loadLogAtom, (log) => [...log, title]);
-        }
-    } catch (e) {
-        console.error("Failed to restore icons", e);
-    }
-}
-
-void restoreIcons();
-
-//---------------------------------------------------------------------------
-// Persistence of the view: the folders open in the tree, and the folder selected there. Saved after each change, from
-// a store subscription like the document above. Ids that are no longer in the tree are left out of what is saved.
-
-const persistedViewAtom = atom((get): ViewState => pruneViewState(
-    { expandedIds: [...get(expandedIdsAtom)], selectedId: get(treeSelectedIdAtom) },
-    get(bookmarkNodesAtom),
-));
-
-let lastSavedView = "";
-
-getDefaultStore().sub(persistedViewAtom, () => {
-    const view = getDefaultStore().get(persistedViewAtom);
-    const json = JSON.stringify(view);
-    // Skips the write when only the tree changed, so the view is not rewritten on every edit.
-    if (json !== lastSavedView) {
-        lastSavedView = json;
-        writeStoredViewState(view);
-    }
-});

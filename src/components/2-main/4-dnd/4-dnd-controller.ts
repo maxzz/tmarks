@@ -4,6 +4,7 @@ import { cancelFrame, frame } from "motion/react";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import {
     bookmarkNodesAtom,
+    bookmarkRootIdsAtom,
     childFolderIdsAtom,
     currentFolderIdAtom,
     currentItemIdsAtom,
@@ -12,19 +13,24 @@ import {
     treeSelectedIdsAtom,
     visibleTreeIdsAtom,
 } from "@/store/store/a-bookmarks-atoms";
-import { type DndZone, type DropPlacement, type DropRect, type DropTarget } from "./0-dnd-types";
+import { activateTabAtom, activeTabIdAtom, type TabId, tabHeaderDropPlacementAtom } from "@/store/tabs";
+import { resolvePlacement } from "@/store/tabs/0-tabs-logic";
+import { type DndZone, type DragSession, type DropPlacement, type DropRect, type DropTarget } from "./0-dnd-types";
 import { placementAt, planMove } from "./1-dnd-logic";
 import { previewX, previewY } from "./2-dnd-motion-values";
 import { dragSessionAtom, dropTargetAtom } from "./2-dnd-atoms";
-import { moveBookmarksAtom } from "./3-dnd-move-atoms";
+import { dropBookmarksAtom } from "./3-dnd-move-atoms";
 
 // The drag controller. It runs on window pointer events, not on native HTML5 drag-and-drop, so it works between the
 // two panels and does not trigger the app's file-drop handler. Components only call `startDragAtom` on pointer down.
+// A drag can also end in another tab: resting on a tab's header shows that tab, and dropping on it adds the items there.
 
 /** Pointer movement, in pixels, before a press becomes a drag. Smaller moves are still clicks. */
 const START_DISTANCE_PX = 4;
 /** How long the pointer must rest on a collapsed tree folder before it expands. */
 const EXPAND_DELAY_MS = 500;
+/** How long the pointer must rest on a tab's header before that tab is shown. */
+const TAB_SWITCH_DELAY_MS = 600;
 /** Within this many pixels of the top or bottom of a scrollable panel, the panel scrolls. */
 const SCROLL_EDGE_PX = 48;
 const SCROLL_MAX_PX_PER_FRAME = 16;
@@ -53,6 +59,8 @@ export const startDragAtom = atom(
             startX: event.clientX,
             startY: event.clientY,
             ids: draggedIdsFor(get, id, zone),
+            sourceTabId: get(activeTabIdAtom),
+            label: get(bookmarkNodesAtom)[id]?.title || "(untitled)",
         };
 
         window.addEventListener("pointermove", onPointerMove);
@@ -73,6 +81,8 @@ interface PendingDrag {
     startX: number;
     startY: number;
     ids: BookmarkId[];
+    sourceTabId: TabId;
+    label: string;
 }
 
 let pending: PendingDrag | null = null;
@@ -80,6 +90,8 @@ let pointerX = 0;
 let pointerY = 0;
 let expandTimer: ReturnType<typeof setTimeout> | null = null;
 let expandTimerFolderId: BookmarkId | null = null;
+let tabTimer: ReturnType<typeof setTimeout> | null = null;
+let tabTimerTabId: TabId | null = null;
 let scrollElement: HTMLElement | null = null;
 let scrollSpeed = 0;
 
@@ -110,7 +122,7 @@ function onPointerMove(event: PointerEvent) {
         if (Math.hypot(pointerX - pending.startX, pointerY - pending.startY) < START_DISTANCE_PX) {
             return;
         }
-        store.set(dragSessionAtom, { ids: pending.ids });
+        store.set(dragSessionAtom, { ids: pending.ids, sourceTabId: pending.sourceTabId, label: pending.label });
     }
 
     refreshDrop();
@@ -126,9 +138,9 @@ function onPointerUp(event: PointerEvent) {
     if (session) {
         suppressNextClick();
         // Look the target up again, so the drop uses the pointer position at release.
-        const target = findDropTarget(pointerX, pointerY, session.ids);
+        const target = findDropTarget(pointerX, pointerY, session);
         if (target) {
-            store.set(moveBookmarksAtom, { ids: session.ids, placement: target.placement });
+            store.set(dropBookmarksAtom, { session, target, copy: event.ctrlKey || event.metaKey });
         }
     }
     endDrag();
@@ -160,23 +172,35 @@ function refreshDrop() {
         return;
     }
 
-    const target = findDropTarget(pointerX, pointerY, session.ids);
+    const target = findDropTarget(pointerX, pointerY, session);
     setDropTarget(target);
     updateAutoExpand(target);
+    updateTabSwitch();
 }
 
-/** Looks at the element under the pointer. Rows give a before/after/into drop, panel backgrounds give an append. */
-function findDropTarget(x: number, y: number, ids: BookmarkId[]): DropTarget | null {
+/**
+ * Looks at the element under the pointer. Rows give a before/after/into drop, panel backgrounds give an append,
+ * and a tab's header an append to the folder that tab shows.
+ */
+function findDropTarget(x: number, y: number, session: DragSession): DropTarget | null {
     const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-dnd-target]");
     if (!el) {
         return null;
     }
 
-    const zone: DndZone = el.dataset.dndZone === "tree" ? "tree" : "items";
-    const axis = el.dataset.dndAxis === "x" ? "x" : "y";
     const box = el.getBoundingClientRect();
     const rect: DropRect = { left: box.left, top: box.top, width: box.width, height: box.height };
+
+    if (el.dataset.dndTarget === "tab") {
+        const tabId = el.dataset.dndTabId;
+        const placement = tabId ? store.set(tabHeaderDropPlacementAtom, { targetTabId: tabId, sourceTabId: session.sourceTabId, ids: session.ids }) : null;
+        return tabId && placement ? { placement, rect, axis: "y", zone: "tab", tabId } : null;
+    }
+
+    const zone: DndZone = el.dataset.dndZone === "tree" ? "tree" : "items";
+    const axis = el.dataset.dndAxis === "x" ? "x" : "y";
     const nodes = store.get(bookmarkNodesAtom);
+    const shownTabId = store.get(activeTabIdAtom);
 
     let placement: DropPlacement;
     if (el.dataset.dndTarget === "panel") {
@@ -199,10 +223,11 @@ function findDropTarget(x: number, y: number, ids: BookmarkId[]): DropTarget | n
         placement = where === "into" ? { kind: "into", folderId: node.id } : { kind: where, anchorId: node.id };
     }
 
-    if (!planMove(nodes, ids, placement)) {
-        return null;
-    }
-    return { placement, rect, axis, zone };
+    // Items from another tab are copied in as new items, so only the place itself needs to exist here.
+    const allowed = session.sourceTabId === shownTabId
+        ? planMove(nodes, session.ids, placement) !== null
+        : resolvePlacement({ nodes, rootIds: store.get(bookmarkRootIdsAtom) }, placement) !== null;
+    return allowed ? { placement, rect, axis, zone, tabId: shownTabId } : null;
 }
 
 /** Stores the target only when it changed, so the indicator is not redrawn on every pointer move. */
@@ -244,6 +269,41 @@ function clearExpandTimer() {
     }
     expandTimer = null;
     expandTimerFolderId = null;
+}
+
+//---------------------------------------------------------------------------
+// Delayed switch to the tab under the pointer
+
+/**
+ * Another tab's header shows that tab after a short rest of the pointer over it, so the items can be dropped at an
+ * exact place in it. This works on any header, also where the header itself takes no drop.
+ */
+function updateTabSwitch() {
+    const header = document.elementFromPoint(pointerX, pointerY)?.closest<HTMLElement>("[data-dnd-tab-id]");
+    const hoveredId = header?.dataset.dndTabId ?? null;
+    const wanted = hoveredId !== null && hoveredId !== store.get(activeTabIdAtom) ? hoveredId : null;
+    if (wanted === tabTimerTabId) {
+        return;
+    }
+
+    clearTabTimer();
+    if (wanted !== null) {
+        tabTimerTabId = wanted;
+        tabTimer = setTimeout(() => {
+            tabTimer = null;
+            tabTimerTabId = null;
+            store.set(activateTabAtom, wanted);
+            refreshDrop();
+        }, TAB_SWITCH_DELAY_MS);
+    }
+}
+
+function clearTabTimer() {
+    if (tabTimer !== null) {
+        clearTimeout(tabTimer);
+    }
+    tabTimer = null;
+    tabTimerTabId = null;
 }
 
 //---------------------------------------------------------------------------
@@ -315,6 +375,7 @@ function resetPointerTracking() {
     window.removeEventListener("blur", onCancel);
     window.removeEventListener("keydown", onKeyDown);
     clearExpandTimer();
+    clearTabTimer();
     cancelFrame(autoScrollStep);
     scrollElement = null;
     scrollSpeed = 0;
