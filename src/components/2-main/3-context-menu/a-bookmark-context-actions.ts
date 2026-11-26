@@ -2,6 +2,7 @@ import { atom, type Getter } from "jotai";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { bookmarkNodesAtom, currentFolderIdAtom, deleteDialogOpenAtom, editingIdAtom, itemSelectedIdsAtom, treeSelectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { exportItemsAtom, requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
+import { newItemDialogOpenAtom } from "@/store/new-items/1-new-item-atoms";
 import { copyItemsAtom, cutItemsAtom, pasteIntoAtom } from "../5-clipboard/1-clipboard-atoms";
 import { focusBookmarksArea } from "../0-all-main/8-bookmark-ui-helpers";
 
@@ -94,7 +95,7 @@ export const pasteIntoPanelAtom = atom(
 export const restoreFocusAfterContextMenuAtom = atom(
     null,
     (get) => {
-        const dialogOpen = get(editingIdAtom) !== null || get(deleteDialogOpenAtom);
+        const dialogOpen = get(editingIdAtom) !== null || get(deleteDialogOpenAtom) || get(newItemDialogOpenAtom);
         const active = document.activeElement;
         if (!dialogOpen && (active === null || active === document.body)) {
             focusBookmarksArea();

@@ -1,10 +1,11 @@
 import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ClipboardPaste, Plus, Upload } from "lucide-react";
+import { BookmarkPlus, ClipboardPaste, FolderPlus, Plus, Upload } from "lucide-react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { currentFolderIdAtom } from "@/store/store/a-bookmarks-atoms";
 import { openImportPickerAtom } from "@/store/store/a-bookmarks-actions";
 import { newTabAtom } from "@/store/tabs";
+import { startNewItemInPanelAtom } from "@/store/new-items/1-new-item-atoms";
 import { clipboardAtom } from "../5-clipboard/1-clipboard-atoms";
 import { pasteIntoPanelAtom, restoreFocusAfterContextMenuAtom } from "./a-bookmark-context-actions";
 import { type BookmarkContextScope } from "./0-context-menu";
@@ -34,11 +35,26 @@ function PanelContextMenuItems({ scope }: { scope: BookmarkContextScope; }) {
     const paste = useSetAtom(pasteIntoPanelAtom);
     const openImportPicker = useSetAtom(openImportPickerAtom);
     const newTab = useSetAtom(newTabAtom);
+    const startNewItem = useSetAtom(startNewItemInPanelAtom);
 
-    // The right panel shows no folder when nothing is selected in the tree, so there is nowhere to paste.
-    const canPaste = clipboard !== null && (scope === "tree" || folderId !== null);
+    // The right panel shows no folder when nothing is selected in the tree, so there is nowhere to add or paste.
+    const hasPlace = scope === "tree" || folderId !== null;
+    const canPaste = clipboard !== null && hasPlace;
 
     return (<>
+        <ContextMenuItem disabled={!hasPlace} onSelect={() => startNewItem({ kind: "folder", scope })}>
+            <FolderPlus />
+            Add new folder
+        </ContextMenuItem>
+        {scope === "items" && (
+            <ContextMenuItem disabled={!hasPlace} onSelect={() => startNewItem({ kind: "link", scope })}>
+                <BookmarkPlus />
+                Add new bookmark
+            </ContextMenuItem>
+        )}
+
+        <ContextMenuSeparator />
+
         <ContextMenuItem disabled={!canPaste} onSelect={() => paste(scope)}>
             <ClipboardPaste />
             {scope === "tree" ? "Paste at the top level" : "Paste"}

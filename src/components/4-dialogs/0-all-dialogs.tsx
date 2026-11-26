@@ -15,6 +15,7 @@ import {
 import { focusBookmarksArea } from "../2-main/0-all-main/8-bookmark-ui-helpers";
 import { CloseTabDialog } from "../2-main/6-tabs/2-close-tab-dialog";
 import { EditItemDialog } from "./1-edit-item-dialog";
+import { NewItemDialog } from "./2-new-item-dialog";
 
 /** Confirmation and choice dialogs of the bookmarks area. Rendered at app level, so they also work over the Welcome page. */
 export function BookmarkDialogs() {
@@ -22,6 +23,7 @@ export function BookmarkDialogs() {
         <DeleteDialog />
         <ClearDialog />
         <EditItemDialog />
+        <NewItemDialog />
         <CloseTabDialog />
     </>);
 }
