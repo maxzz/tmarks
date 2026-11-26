@@ -1,9 +1,10 @@
-import { atom } from "jotai";
+import { atom, type Getter } from "jotai";
 import { atomFamily } from "jotai-family";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { uuid } from "@/utils/uuid";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import {
+    bookmarkIconsAtom,
     bookmarkNodesAtom,
     bookmarkRootIdsAtom,
     currentFolderIdAtom,
@@ -12,15 +13,21 @@ import {
     itemSelectedIdsAtom,
     selectionPanelAtom,
 } from "@/store/store/a-bookmarks-atoms";
+import { selectionDocument } from "@/store/io/selection-export";
+import { writeSystemClipboard } from "@/store/io/system-clipboard";
+import { activeTabIdAtom, type TabId, transferItemsAtom } from "@/store/tabs";
 import { applyMove } from "../4-dnd/1-dnd-logic";
 import { copyNodes } from "./0-clipboard-logic";
 
-// Clipboard state and the Copy, Cut and Paste actions. Both panels share the clipboard. The menu and the keyboard
-// shortcuts (2-clipboard-keys.ts) only call these atoms.
+// Clipboard state and the Copy, Cut and Paste actions. Both panels and all tabs share the clipboard. The menu and the
+// keyboard shortcuts (2-clipboard-keys.ts) only call these atoms. A paste in another tab than the one the items
+// came from goes through the tabs (see store/tabs).
 
 export interface Clipboard {
     mode: "copy" | "cut";
     ids: BookmarkId[];
+    /** The tab the items were copied or cut in. */
+    tabId: TabId;
 }
 
 /** What Copy or Cut stored, or `null` when the clipboard is empty. A new Copy or Cut replaces it. */
@@ -30,27 +37,34 @@ export const clipboardAtom = atom<Clipboard | null>(null);
 export const isCutAtomFamily = atomFamily(
     (id: BookmarkId) => atom((get) => {
         const clipboard = get(clipboardAtom);
-        return clipboard?.mode === "cut" && clipboard.ids.includes(id);
+        return clipboard?.mode === "cut" && clipboard.tabId === get(activeTabIdAtom) && clipboard.ids.includes(id);
     })
 );
 
 export const copyItemsAtom = atom(
     null,
-    (_get, set, ids: BookmarkId[]) => {
+    (get, set, ids: BookmarkId[]) => {
         if (ids.length > 0) {
-            set(clipboardAtom, { mode: "copy", ids });
+            set(clipboardAtom, { mode: "copy", ids, tabId: get(activeTabIdAtom) });
+            copyToSystemClipboard(get, ids);
         }
     }
 );
 
 export const cutItemsAtom = atom(
     null,
-    (_get, set, ids: BookmarkId[]) => {
+    (get, set, ids: BookmarkId[]) => {
         if (ids.length > 0) {
-            set(clipboardAtom, { mode: "cut", ids });
+            set(clipboardAtom, { mode: "cut", ids, tabId: get(activeTabIdAtom) });
+            copyToSystemClipboard(get, ids);
         }
     }
 );
+
+function copyToSystemClipboard(get: Getter, ids: BookmarkId[]) {
+    const doc = { nodes: get(bookmarkNodesAtom), rootIds: get(bookmarkRootIdsAtom), icons: get(bookmarkIconsAtom) };
+    writeSystemClipboard(selectionDocument(doc, new Set(ids)));
+}
 
 /**
  * Pastes the clipboard at the end of `parentId` (`null` for the top level). A copy makes new items. A cut moves the
@@ -62,6 +76,21 @@ export const pasteIntoAtom = atom(
         const clipboard = get(clipboardAtom);
         if (!clipboard) {
             notice.info("Nothing to paste. Copy or cut items first.");
+            return;
+        }
+
+        const shownTabId = get(activeTabIdAtom);
+        if (clipboard.tabId !== shownTabId) {
+            const placed = set(transferItemsAtom, {
+                sourceTabId: clipboard.tabId,
+                targetTabId: shownTabId,
+                ids: clipboard.ids,
+                mode: clipboard.mode === "cut" ? "move" : "copy",
+                placement: { kind: "end", parentId },
+            });
+            if (placed && clipboard.mode === "cut") {
+                set(clipboardAtom, null);
+            }
             return;
         }
 

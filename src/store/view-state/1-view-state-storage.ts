@@ -15,11 +15,7 @@ export function readStoredViewState(): ViewState | null {
     }
 }
 
-/** Saves the view. A failed write is logged only: the view is a convenience, and the tree is kept separately. */
-export function writeStoredViewState(state: ViewState): void {
-    try {
-        localStorage.setItem(VIEW_KEY, JSON.stringify(state));
-    } catch (e) {
-        console.error("Failed to save the view", e);
-    }
+/** Removes the saved view, once it has been moved to the tabs in IndexedDB (see store/tabs). */
+export function removeStoredViewState(): void {
+    localStorage.removeItem(VIEW_KEY);
 }

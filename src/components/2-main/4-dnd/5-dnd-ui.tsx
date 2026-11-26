@@ -1,7 +1,5 @@
 import { useAtomValue } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
-import { type BookmarkId } from "@/store/store/9-bookmark-types";
-import { nodeAtom } from "@/store/store/a-bookmarks-atoms";
 import { type DropTarget } from "./0-dnd-types";
 import { dragSessionAtom, dropTargetAtom } from "./2-dnd-atoms";
 import { previewX, previewY } from "./2-dnd-motion-values";
@@ -22,14 +20,12 @@ function DragPreview() {
 
     return (
         <AnimatePresence>
-            {session && <PreviewCard ids={session.ids} />}
+            {session && <PreviewCard label={session.label} count={session.ids.length} />}
         </AnimatePresence>
     );
 }
 
-function PreviewCard({ ids }: { ids: BookmarkId[]; }) {
-    const first = useAtomValue(nodeAtom(ids[0]));
-
+function PreviewCard({ label, count }: { label: string; count: number; }) {
     return (
         <motion.div
             className="fixed top-0 left-0 px-2 py-1 max-w-64 text-xs text-popover-foreground bg-popover border rounded-md shadow-lg flex items-center gap-2 pointer-events-none z-50"
@@ -39,9 +35,9 @@ function PreviewCard({ ids }: { ids: BookmarkId[]; }) {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.12 }}
         >
-            <span className="min-w-0 truncate">{first?.title || "(untitled)"}</span>
-            {ids.length > 1 && (
-                <span className="shrink-0 px-1 text-primary-foreground bg-primary rounded-sm">{ids.length}</span>
+            <span className="min-w-0 truncate">{label}</span>
+            {count > 1 && (
+                <span className="shrink-0 px-1 text-primary-foreground bg-primary rounded-sm">{count}</span>
             )}
         </motion.div>
     );

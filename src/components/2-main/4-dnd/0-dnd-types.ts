@@ -1,7 +1,8 @@
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
+import { type TabId } from "@/store/tabs/0-tabs-types";
 
-/** The panel a drag starts in, or a drop target belongs to. */
-export type DndZone = "tree" | "items";
+/** The panel a drag starts in, or a drop target belongs to. `tab` is a tab's header in the tab strip. */
+export type DndZone = "tree" | "items" | "tab";
 
 /**
  * Where dropped items go. `before` and `after` put them next to a row, in that row's folder. `into` puts them
@@ -28,10 +29,16 @@ export interface DropTarget {
     axis: "x" | "y";
     /** The panel the target is in. A collapsed tree folder under the pointer expands after a short delay. */
     zone: DndZone;
+    /** The tab whose document `placement` refers to. When it is not the drag's source tab, the drop is a transfer. */
+    tabId: TabId;
 }
 
 /** A drag in progress, started once the pointer has moved a few pixels. */
 export interface DragSession {
     /** The items being dragged, in display order. */
     ids: BookmarkId[];
+    /** The tab the items are in. Hovering another tab's header shows that tab, so the drag can end there. */
+    sourceTabId: TabId;
+    /** Title of the first item, for the preview. Kept here because the item is not shown once another tab is. */
+    label: string;
 }

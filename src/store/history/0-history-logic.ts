@@ -33,6 +33,12 @@ export function pickReferencedIcons(nodes: BookmarkNodes, icons: BookmarkIcons):
     return kept;
 }
 
+/** The undo and redo stacks of one document. Each tab keeps its own. */
+export interface HistoryStacks {
+    undo: HistorySnapshot[];
+    redo: HistorySnapshot[];
+}
+
 /** Adds a step to the end of a stack and drops the oldest steps beyond `MAX_HISTORY_STEPS`. Returns a new array. */
 export function pushStep(stack: HistorySnapshot[], step: HistorySnapshot): HistorySnapshot[] {
     return [...stack, step].slice(-MAX_HISTORY_STEPS);
