@@ -3,7 +3,7 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import { uuid } from "@/utils/uuid";
 import { type DropPlacement } from "@/components/2-main/4-dnd/0-dnd-types";
 import { type BookmarkId } from "../store/9-bookmark-types";
-import { currentFolderIdAtom, expandedIdsAtom, itemSelectedIdAtom, itemSelectedIdsAtom, selectionPanelAtom } from "../store/a-bookmarks-atoms";
+import { currentFolderIdAtom, expandedIdsAtom, itemSelectedIdAtom, itemSelectedIdsAtom, pinnedFolderAtom, selectionPanelAtom } from "../store/a-bookmarks-atoms";
 import { downloadTextFile } from "../io/download-text-file";
 import { importedFolderTitle, wrapTopLevelLinks } from "../io/import-folders";
 import { serializeNetscapeBookmarks } from "../io/netscape-serialize";
@@ -290,6 +290,8 @@ function revealPlacedItems(get: Getter, set: Setter, parentId: BookmarkId | null
         set(expandedIdsAtom, new Set([...get(expandedIdsAtom), parentId]));
     }
     if (parentId === get(currentFolderIdAtom)) {
+        // Pin the folder so the right panel stays on it. Otherwise a pasted folder becomes the shown folder and opens.
+        set(pinnedFolderAtom, { id: parentId });
         set(selectionPanelAtom, "items");
         set(itemSelectedIdsAtom, new Set(ids));
         set(itemSelectedIdAtom, ids[ids.length - 1] ?? null);
