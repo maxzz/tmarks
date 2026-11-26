@@ -76,6 +76,17 @@ export const pasteContextItemAtom = atom(
 );
 
 /**
+ * "Paste" from the menu of a panel's empty space: in the tree, to the top level; in the right panel, into the folder
+ * it shows. The same places as a drop on the panel's empty space (see 4-dnd).
+ */
+export const pasteIntoPanelAtom = atom(
+    null,
+    (get, set, scope: "tree" | "items") => {
+        set(pasteIntoAtom, scope === "tree" ? null : get(currentFolderIdAtom));
+    }
+);
+
+/**
  * Runs when a context menu closes. Radix would return focus to the element that had it before the menu opened,
  * which can pull focus away from a dialog that is opening. So focus goes to the bookmarks area only when a
  * dialog did not open and nothing else has taken focus. Otherwise the keyboard shortcuts would stop working.

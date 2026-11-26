@@ -6,6 +6,7 @@ import { type BookmarkId, type BookmarkNode } from "@/store/store/9-bookmark-typ
 import { currentFolderIdAtom, currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, openFolderAtom } from "@/store/store/a-bookmarks-actions";
 import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
+import { PanelContextMenu } from "../3-context-menu/1-panel-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { openBookmarkLink, revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 import { isDraggedAtom, startDragAtom } from "../4-dnd";
@@ -19,36 +20,42 @@ export function Panel_Items() {
 
     // Nothing is selected in the tree, so no folder is shown. The panel stays empty, with no header or message.
     if (folderId === null) {
-        return <div tabIndex={-1} className="group/items h-full min-h-0 outline-none" />;
+        return (
+            <PanelContextMenu scope="items">
+                <div tabIndex={-1} className="group/items h-full min-h-0 outline-none" />
+            </PanelContextMenu>
+        );
     }
 
     return (
         // tabIndex lets a click on empty space focus the panel, so the selection keeps its focused look.
-        <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
-            <ItemsPanelHeader count={itemIds.length} />
-
-            {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
-            <div className="flex-1 p-2 min-h-0 overflow-auto" data-dnd-target="panel" data-dnd-zone="items" data-dnd-scroll>
-                {itemIds.length === 0
-                    ? <EmptyFolder />
-                    : viewMode === "grid"
-                        ? (
-                            <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
-                                {itemIds.map(
-                                    (id) => <Item_InGrid key={id} id={id} showUrl={showItemUrls} />
-                                )}
-                            </div>
-                        )
-                        : (
-                            <div className="select-none flex flex-col gap-px" role="listbox" aria-label="Items" aria-multiselectable="true">
-                                {itemIds.map(
-                                    (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
-                                )}
-                            </div>
-                        )
-                }
+        <PanelContextMenu scope="items">
+            <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
+                <ItemsPanelHeader count={itemIds.length} />
+    
+                {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
+                <div className="flex-1 p-2 min-h-0 overflow-auto" data-dnd-target="panel" data-dnd-zone="items" data-dnd-scroll>
+                    {itemIds.length === 0
+                        ? <EmptyFolder />
+                        : viewMode === "grid"
+                            ? (
+                                <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
+                                    {itemIds.map(
+                                        (id) => <Item_InGrid key={id} id={id} showUrl={showItemUrls} />
+                                    )}
+                                </div>
+                            )
+                            : (
+                                <div className="select-none flex flex-col gap-px" role="listbox" aria-label="Items" aria-multiselectable="true">
+                                    {itemIds.map(
+                                        (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
+                                    )}
+                                </div>
+                            )
+                    }
+                </div>
             </div>
-        </div>
+        </PanelContextMenu>
     );
 }
 
