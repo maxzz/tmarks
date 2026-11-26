@@ -2,6 +2,7 @@ import { atom, type Getter } from "jotai";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { bookmarkNodesAtom, currentFolderIdAtom, deleteDialogOpenAtom, editingIdAtom, itemSelectedIdsAtom, treeSelectedIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { exportItemsAtom, requestDeleteAtom, startEditAtom } from "@/store/store/a-bookmarks-actions";
+import { newItemDialogOpenAtom } from "@/store/new-items/1-new-item-atoms";
 import { copyItemsAtom, cutItemsAtom, pasteIntoAtom } from "../5-clipboard/1-clipboard-atoms";
 import { focusBookmarksArea } from "../0-all-main/8-bookmark-ui-helpers";
 
@@ -76,6 +77,17 @@ export const pasteContextItemAtom = atom(
 );
 
 /**
+ * "Paste" from the menu of a panel's empty space: in the tree, to the top level; in the right panel, into the folder
+ * it shows. The same places as a drop on the panel's empty space (see 4-dnd).
+ */
+export const pasteIntoPanelAtom = atom(
+    null,
+    (get, set, scope: "tree" | "items") => {
+        set(pasteIntoAtom, scope === "tree" ? null : get(currentFolderIdAtom));
+    }
+);
+
+/**
  * Runs when a context menu closes. Radix would return focus to the element that had it before the menu opened,
  * which can pull focus away from a dialog that is opening. So focus goes to the bookmarks area only when a
  * dialog did not open and nothing else has taken focus. Otherwise the keyboard shortcuts would stop working.
@@ -83,7 +95,7 @@ export const pasteContextItemAtom = atom(
 export const restoreFocusAfterContextMenuAtom = atom(
     null,
     (get) => {
-        const dialogOpen = get(editingIdAtom) !== null || get(deleteDialogOpenAtom);
+        const dialogOpen = get(editingIdAtom) !== null || get(deleteDialogOpenAtom) || get(newItemDialogOpenAtom);
         const active = document.activeElement;
         if (!dialogOpen && (active === null || active === document.body)) {
             focusBookmarksArea();

@@ -6,6 +6,7 @@ import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { childFolderIdsAtom, isExpandedAtom, isTreeSelectedAtom, nodeAtom, rootFolderIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, toggleExpandedAtom } from "@/store/store/a-bookmarks-actions";
 import { BookmarkContextMenu } from "../3-context-menu/0-context-menu";
+import { PanelContextMenu } from "../3-context-menu/1-panel-context-menu";
 import { ItemPreview } from "../0-all-main/7-item-preview";
 import { revealWhenSelected } from "../0-all-main/8-bookmark-ui-helpers";
 import { isDraggedAtom, startDragAtom } from "../4-dnd";
@@ -18,13 +19,15 @@ export function Panel_Tree() {
     return (
         // tabIndex lets a click on empty space focus the tree, so the selection keeps its focused look.
         // Dropping on the empty space below the rows adds to the top level (data-dnd-* attributes, see 4-dnd).
-        <div role="tree" aria-label="Bookmarks" tabIndex={-1} data-dnd-target="panel" data-dnd-zone="tree" data-dnd-scroll className="group/tree py-1 h-full select-none overflow-auto outline-none">
-            {rootIds.map(
-                (id) => (
-                    <TreeRow key={id} id={id} depth={0} />
-                )
-            )}
-        </div>
+        <PanelContextMenu scope="tree">
+            <div role="tree" aria-label="Bookmarks" tabIndex={-1} data-dnd-target="panel" data-dnd-zone="tree" data-dnd-scroll className="group/tree py-1 h-full select-none overflow-auto outline-none">
+                {rootIds.map(
+                    (id) => (
+                        <TreeRow key={id} id={id} depth={0} />
+                    )
+                )}
+            </div>
+        </PanelContextMenu>
     );
 }
 
