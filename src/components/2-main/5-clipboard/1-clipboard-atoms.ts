@@ -11,6 +11,7 @@ import {
     expandedIdsAtom,
     itemSelectedIdAtom,
     itemSelectedIdsAtom,
+    pinnedFolderAtom,
     selectionPanelAtom,
 } from "@/store/store/a-bookmarks-atoms";
 import { selectionDocument } from "@/store/io/selection-export";
@@ -130,6 +131,8 @@ export const pasteIntoAtom = atom(
             set(expandedIdsAtom, new Set([...get(expandedIdsAtom), parentId]));
         }
         if (parentId === get(currentFolderIdAtom)) {
+            // Pin the folder so the right panel stays on it. Otherwise a pasted folder becomes the shown folder and opens.
+            set(pinnedFolderAtom, { id: parentId });
             set(selectionPanelAtom, "items");
             set(itemSelectedIdsAtom, new Set(placed));
             set(itemSelectedIdAtom, placed[placed.length - 1] ?? null);
