@@ -34,12 +34,18 @@ export function Panel_Items() {
             <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
                 <ItemsPanelHeader count={itemIds.length} />
     
-                <ScrollArea className="flex-1 min-h-0" fullHeight fixedWidth viewportProps={{ "data-dnd-scroll": "" }}>
-                    {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
-                    <div className="p-2 h-full" data-dnd-target="panel" data-dnd-zone="items">
-                        {itemIds.length === 0
-                            ? <EmptyFolder />
-                            : viewMode === "grid"
+                {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
+                {itemIds.length === 0
+                    ? (
+                        <div className="flex-1 min-h-0 p-2 flex flex-col" data-dnd-target="panel" data-dnd-zone="items">
+                            <EmptyFolder />
+                        </div>
+                    )
+                    : (
+                        // The viewport is the scroll container and the empty-space drop target. The content stays auto-height
+                        // (no fullHeight), so the scrollbar's overflow check updates as rows are added or removed.
+                        <ScrollArea className="flex-1 min-h-0" fixedWidth viewportClassName="p-2" viewportProps={{ "data-dnd-target": "panel", "data-dnd-zone": "items", "data-dnd-scroll": "" }}>
+                            {viewMode === "grid"
                                 ? (
                                     <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
                                         {itemIds.map(
@@ -54,9 +60,10 @@ export function Panel_Items() {
                                         )}
                                     </div>
                                 )
-                        }
-                    </div>
-                </ScrollArea>
+                            }
+                        </ScrollArea>
+                    )
+                }
             </div>
         </PanelContextMenu>
     );
@@ -74,7 +81,7 @@ function ItemsPanelHeader({ count }: { count: number; }) {
 }
 
 function EmptyFolder() {
-    return <div className="h-full text-muted-foreground grid place-items-center">This folder is empty.</div>;
+    return <div className="flex-1 text-muted-foreground grid place-items-center">This folder is empty.</div>;
 }
 
 //---------------------------------------------------------------------------
