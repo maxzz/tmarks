@@ -82,7 +82,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                             // Hit area spans the full row height and extends to the right edge (negative margins cancel the row padding).
                             // Right padding keeps the icon's x-position unchanged; the row height is unaffected.
                             <span
-                                className="self-stretch shrink-0 -my-1 -mr-2 pr-2 flex items-center hover:bg-foreground/10"
+                                className="self-stretch shrink-0 -my-1 -mx-1 px-1 rounded-full flex items-center hover:bg-foreground/10"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     toggleExpanded(id);
