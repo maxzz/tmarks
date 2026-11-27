@@ -8,7 +8,12 @@ export type ScrollAreaProps = ComponentProps<typeof Prim.Root> & {
     fixedWidth?: boolean;           // prevents ScrollArea width from growing; i.e. removes display: table from Prim.Viewport
     parentContentWidth?: boolean;   // allows to truncate items to parent width
     viewportClassName?: string;     // additional class name for the viewport element
-    viewportProps?: ComponentPropsWithoutRef<typeof Prim.Viewport> & { [key: `data-${string}`]: string | undefined };
+    viewportProps?: ViewportProps;
+};
+
+/** Viewport props; `data-*` attributes are allowed (e.g. `data-dnd-scroll`, used by drag-and-drop edge scrolling). */
+export type ViewportProps = ComponentPropsWithoutRef<typeof Prim.Viewport> & {
+    [key: `data-${string}`]: string | undefined;
 };
 
 /**
