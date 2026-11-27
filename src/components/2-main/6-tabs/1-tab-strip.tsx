@@ -13,7 +13,7 @@ export function TabStrip() {
     const newTab = useSetAtom(clickNewTabAtom);
 
     return (
-        <div className="px-1 pt-1 bg-muted/40 border-b overflow-x-auto flex items-end gap-px" role="tablist" aria-label="Open bookmark files">
+        <div className="px-1 pt-1 bg-muted/40 border-b overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex items-end gap-px" role="tablist" aria-label="Open bookmark files">
             {tabs.map(
                 (tab) => <TabHeader key={tab.id} tab={tab} />
             )}

@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
+import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { appSettings } from "@/store/1-ui-settings";
 import { type BookmarkId, type BookmarkNode } from "@/store/store/9-bookmark-types";
 import { currentFolderIdAtom, currentFolderNodeAtom, currentItemIdsAtom, isSelectedAtom, nodeAtom, viewModeAtom } from "@/store/store/a-bookmarks-atoms";
@@ -33,27 +34,29 @@ export function Panel_Items() {
             <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
                 <ItemsPanelHeader count={itemIds.length} />
     
-                {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
-                <div className="flex-1 p-2 min-h-0 overflow-auto" data-dnd-target="panel" data-dnd-zone="items" data-dnd-scroll>
-                    {itemIds.length === 0
-                        ? <EmptyFolder />
-                        : viewMode === "grid"
-                            ? (
-                                <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
-                                    {itemIds.map(
-                                        (id) => <Item_InGrid key={id} id={id} showUrl={showItemUrls} />
-                                    )}
-                                </div>
-                            )
-                            : (
-                                <div className="select-none flex flex-col gap-px" role="listbox" aria-label="Items" aria-multiselectable="true">
-                                    {itemIds.map(
-                                        (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
-                                    )}
-                                </div>
-                            )
-                    }
-                </div>
+                <ScrollArea className="flex-1 min-h-0" fullHeight fixedWidth viewportProps={{ "data-dnd-scroll": "" }}>
+                    {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
+                    <div className="p-2 h-full" data-dnd-target="panel" data-dnd-zone="items">
+                        {itemIds.length === 0
+                            ? <EmptyFolder />
+                            : viewMode === "grid"
+                                ? (
+                                    <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
+                                        {itemIds.map(
+                                            (id) => <Item_InGrid key={id} id={id} showUrl={showItemUrls} />
+                                        )}
+                                    </div>
+                                )
+                                : (
+                                    <div className="select-none flex flex-col gap-px" role="listbox" aria-label="Items" aria-multiselectable="true">
+                                        {itemIds.map(
+                                            (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
+                                        )}
+                                    </div>
+                                )
+                        }
+                    </div>
+                </ScrollArea>
             </div>
         </PanelContextMenu>
     );

@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { classNames } from "@/utils";
+import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type BookmarkId } from "@/store/store/9-bookmark-types";
 import { childFolderIdsAtom, isExpandedAtom, isTreeSelectedAtom, nodeAtom, rootFolderIdsAtom } from "@/store/store/a-bookmarks-atoms";
 import { clickItemAtom, toggleExpandedAtom } from "@/store/store/a-bookmarks-actions";
@@ -20,13 +21,15 @@ export function Panel_Tree() {
         // tabIndex lets a click on empty space focus the tree, so the selection keeps its focused look.
         // Dropping on the empty space below the rows adds to the top level (data-dnd-* attributes, see 4-dnd).
         <PanelContextMenu scope="tree">
-            <div role="tree" aria-label="Bookmarks" tabIndex={-1} data-dnd-target="panel" data-dnd-zone="tree" data-dnd-scroll className="group/tree py-1 h-full select-none overflow-auto outline-none">
-                {rootIds.map(
-                    (id) => (
-                        <TreeRow key={id} id={id} depth={0} />
-                    )
-                )}
-            </div>
+            <ScrollArea className="h-full" fullHeight fixedWidth viewportProps={{ "data-dnd-scroll": "" }}>
+                <div role="tree" aria-label="Bookmarks" tabIndex={-1} data-dnd-target="panel" data-dnd-zone="tree" className="group/tree py-1 h-full select-none outline-none">
+                    {rootIds.map(
+                        (id) => (
+                            <TreeRow key={id} id={id} depth={0} />
+                        )
+                    )}
+                </div>
+            </ScrollArea>
         </PanelContextMenu>
     );
 }
