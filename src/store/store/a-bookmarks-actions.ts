@@ -176,8 +176,9 @@ export const clickItemAtom = atom(
         const panelFolderId = get(currentFolderIdAtom);
         set(selectionPanelAtom, click.scope);
         if (click.scope === "tree" && !click.ctrl && !click.shift) {
-            // A plain click on a folder also opens it in the tree.
-            set(selectItemAtom, click.id);
+            // A plain click only selects the row. Expanding/collapsing happens only via the chevron (toggleExpandedAtom).
+            set(treeSelectedIdAtom, click.id);
+            set(treeSelectedIdsAtom, new Set([click.id]));
         } else {
             selectClickedItem(get, set, click);
         }

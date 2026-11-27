@@ -79,14 +79,18 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                 >
                     {hasChildren
                         ? (
+                            // Hit area spans the full row height and extends to the right edge (negative margins cancel the row padding).
+                            // Right padding keeps the icon's x-position unchanged; the row height is unaffected.
                             <span
-                                className="shrink-0 size-4 hover:bg-foreground/10 rounded-sm grid place-items-center"
+                                className="self-stretch shrink-0 -my-1 -mx-1 px-1 rounded-full flex items-center hover:bg-foreground/10"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     toggleExpanded(id);
                                 }}
                             >
-                                <ChevronRight className={classNames("size-3 transition-transform duration-150", isExpanded && "rotate-90")} />
+                                <span className="size-4 rounded-sm grid place-items-center">
+                                    <ChevronRight className={classNames("size-3 transition-transform duration-150", isExpanded && "rotate-90")} />
+                                </span>
                             </span>
                         )
                         : <span className="shrink-0 size-4" />
