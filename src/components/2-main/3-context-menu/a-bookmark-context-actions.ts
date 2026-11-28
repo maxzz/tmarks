@@ -78,7 +78,8 @@ export const pasteContextItemAtom = atom(
 
 /**
  * "Paste" from the menu of a panel's empty space: in the tree, to the top level; in the right panel, into the folder
- * it shows. The same places as a drop on the panel's empty space (see 4-dnd).
+ * it shows. In the tree this is the same place as a drop on the empty space (see 4-dnd). In the right panel a drop
+ * on the empty space is only a target when the folder is empty.
  */
 export const pasteIntoPanelAtom = atom(
     null,
