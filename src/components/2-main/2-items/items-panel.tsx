@@ -31,13 +31,13 @@ export function Panel_Items() {
     return (
         // tabIndex lets a click on empty space focus the panel, so the selection keeps its focused look.
         <PanelContextMenu scope="items">
-            <div tabIndex={-1} className="group/items h-full min-h-0 flex flex-col outline-none">
+            <div tabIndex={-1} className="group/items h-full min-h-0 outline-none flex flex-col">
                 <ItemsPanelHeader count={itemIds.length} />
     
                 {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
                 {itemIds.length === 0
                     ? (
-                        <div className="flex-1 min-h-0 p-2 flex flex-col" data-dnd-target="panel" data-dnd-zone="items">
+                        <div className="flex-1 p-2 min-h-0 flex flex-col" data-dnd-target="panel" data-dnd-zone="items">
                             <EmptyFolder />
                         </div>
                     )

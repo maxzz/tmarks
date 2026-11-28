@@ -23,7 +23,7 @@ export function Panel_Tree() {
         // The viewport is the scroll container and the empty-space drop target. Its content stays auto-height (no fullHeight),
         // so the scrollbar's overflow check updates as rows expand or collapse.
         <PanelContextMenu scope="tree">
-            <ScrollArea className="group/tree h-full select-none outline-none" fixedWidth viewportClassName="py-1" viewportProps={{ tabIndex: -1, "data-dnd-target": "panel", "data-dnd-zone": "tree", "data-dnd-scroll": "" }}>
+            <ScrollArea className="group/tree h-full outline-none select-none" fixedWidth viewportClassName="py-1" viewportProps={{ tabIndex: -1, "data-dnd-target": "panel", "data-dnd-zone": "tree", "data-dnd-scroll": "" }}>
                 <div role="tree" aria-label="Bookmarks">
                     {rootIds.map(
                         (id) => (
@@ -82,7 +82,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                             // Hit area spans the full row height and extends to the right edge (negative margins cancel the row padding).
                             // Right padding keeps the icon's x-position unchanged; the row height is unaffected.
                             <span
-                                className="self-stretch shrink-0 -my-1 -mx-1 px-1 rounded-full flex items-center hover:bg-foreground/10"
+                                className="self-stretch shrink-0 px-1 hover:bg-foreground/10 rounded-full flex items-center -my-1 -mx-1"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     toggleExpanded(id);

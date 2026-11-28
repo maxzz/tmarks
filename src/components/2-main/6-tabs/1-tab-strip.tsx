@@ -13,7 +13,7 @@ export function TabStrip() {
     const newTab = useSetAtom(clickNewTabAtom);
 
     return (
-        <div className="px-1 pt-1 bg-muted/40 border-b overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden flex items-end gap-px" role="tablist" aria-label="Open bookmark files">
+        <div className="px-1 pt-1 bg-muted/40 [&::-webkit-scrollbar]:hidden border-b overflow-x-auto flex items-end gap-px scrollbar-none" role="tablist" aria-label="Open bookmark files">
             {tabs.map(
                 (tab) => <TabHeader key={tab.id} tab={tab} />
             )}
@@ -40,7 +40,7 @@ function TabHeader({ tab }: { tab: TabInfo; }) {
     return (
         <div
             className={classNames(
-                "shrink-0 select-none -mb-px pl-3 pr-1 h-7 min-w-24 max-w-52 border border-b-0 rounded-t-md flex items-center gap-1.5 cursor-default",
+                "shrink-0 pl-3 pr-1 h-7 min-w-24 max-w-52 border border-b-0 rounded-t-md select-none flex items-center gap-1.5 cursor-default -mb-px",
                 isActive
                     ? "text-foreground bg-background border-border"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted border-transparent",
@@ -54,7 +54,7 @@ function TabHeader({ tab }: { tab: TabInfo; }) {
             onMouseDown={(e) => { if (e.button === 1) e.preventDefault(); }}
             onAuxClick={(e) => auxClick({ tabId: tab.id, button: e.button })}
         >
-            <span className="min-w-0 truncate flex-1">{tab.title}</span>
+            <span className="flex-1 min-w-0 truncate">{tab.title}</span>
 
             {isModified && (
                 <span className="shrink-0 size-1.5 bg-primary rounded-full" title="Changed since it was opened or saved" />
