@@ -61,7 +61,7 @@ function DropIndicator() {
         <div
             className={isLine
                 ? "fixed rounded-full bg-primary pointer-events-none z-40"
-                : "fixed rounded-md border-2 border-dashed border-primary bg-primary/5 pointer-events-none z-40"
+                : "fixed rounded border-2 border-dashed border-primary bg-primary/5 pointer-events-none z-40"
             }
             style={indicatorGeometry(target)}
         />
