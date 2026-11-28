@@ -51,7 +51,9 @@ function DropIndicator() {
 
     return (
         <AnimatePresence>
-            {target && <Indicator key={`${target.placement.kind}-${target.axis}`} target={target} />}
+            {target && (
+                <Indicator key={`${target.placement.kind}-${target.axis}`} target={target} />
+            )}
         </AnimatePresence>
     );
 }
@@ -65,7 +67,7 @@ function Indicator({ target }: { target: DropTarget; }) {
         <motion.div
             className={isLine
                 ? "fixed rounded-full bg-primary pointer-events-none z-40"
-                : "fixed rounded-md border-2 border-dashed border-primary bg-primary/5 pointer-events-none z-40"
+                : "fixed rounded border-2 1border-dashed border-primary bg-primary/5 pointer-events-none z-40"
             }
             initial={{ opacity: 0, ...geometry }}
             animate={{ opacity: 1, ...geometry }}
