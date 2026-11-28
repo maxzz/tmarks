@@ -21,9 +21,10 @@ export function Panel_Tree() {
         // tabIndex lets a click on empty space focus the tree, so the selection keeps its focused look.
         // Dropping on the empty space below the rows adds to the top level (data-dnd-* attributes, see 4-dnd).
         // The viewport is the scroll container and the empty-space drop target. Its content stays auto-height (no fullHeight),
-        // so the scrollbar's overflow check updates as rows expand or collapse.
+        // so the scrollbar's overflow check updates as rows expand or collapse. The scrollbar floats over the right edge
+        // (8px wide, the same as `pr-2`), so the right padding keeps the rows clear of it. Only the right side is padded.
         <PanelContextMenu scope="tree">
-            <ScrollArea className="group/tree h-full outline-none select-none" fixedWidth viewportClassName="py-1" viewportProps={{ tabIndex: -1, "data-dnd-target": "panel", "data-dnd-zone": "tree", "data-dnd-scroll": "" }}>
+            <ScrollArea className="group/tree h-full outline-none select-none" fixedWidth viewportClassName="py-1 pl-0.5 pr-2" viewportProps={{ tabIndex: -1, "data-dnd-target": "panel", "data-dnd-zone": "tree", "data-dnd-scroll": "" }}>
                 <div role="tree" aria-label="Bookmarks">
                     {rootIds.map(
                         (id) => (
