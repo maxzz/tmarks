@@ -34,7 +34,7 @@ export function Panel_Items() {
             <div tabIndex={-1} className="group/items h-full min-h-0 outline-none flex flex-col">
                 <ItemsPanelHeader count={itemIds.length} />
     
-                {/* data-dnd-*: dropping on the empty space adds to the shown folder (see 4-dnd). */}
+                {/* The empty folder is a drop target: a drop here adds to the shown folder (see 4-dnd). */}
                 {itemIds.length === 0
                     ? (
                         <div className="flex-1 p-2 min-h-0 flex flex-col" data-dnd-target="panel" data-dnd-zone="items">
@@ -42,9 +42,10 @@ export function Panel_Items() {
                         </div>
                     )
                     : (
-                        // The viewport is the scroll container and the empty-space drop target. The content stays auto-height
+                        // The viewport is the scroll container, but not a drop target. The space around the rows (the padding)
+                        // takes no drop, so a drop goes to a row only. The content stays auto-height
                         // (no fullHeight), so the scrollbar's overflow check updates as rows are added or removed.
-                        <ScrollArea className="flex-1 min-h-0" fixedWidth viewportClassName="p-2" viewportProps={{ "data-dnd-target": "panel", "data-dnd-zone": "items", "data-dnd-scroll": "" }}>
+                        <ScrollArea className="flex-1 min-h-0" fixedWidth viewportClassName="p-2" viewportProps={{ "data-dnd-scroll": "" }}>
                             {viewMode === "grid"
                                 ? (
                                     <div className="select-none grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2" role="listbox" aria-label="Items" aria-multiselectable="true">
@@ -54,7 +55,7 @@ export function Panel_Items() {
                                     </div>
                                 )
                                 : (
-                                    <div className="select-none flex flex-col gap-px" role="listbox" aria-label="Items" aria-multiselectable="true">
+                                    <div className="select-none flex flex-col" role="listbox" aria-label="Items" aria-multiselectable="true">
                                         {itemIds.map(
                                             (id) => <Item_InList key={id} id={id} showUrl={showItemUrls} />
                                         )}
