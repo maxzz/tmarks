@@ -60,7 +60,7 @@ function TreeRow({ id, depth }: { id: BookmarkId; depth: number; }) {
                     className={classNames(
                         "pr-2 py-1 hover:bg-muted flex items-center gap-1.5 cursor-default",
                         isSelected
-                            ? "outline outline-1 -outline-offset-1 outline-border text-foreground bg-muted group-focus-within/tree:bg-primary/15 group-focus-within/tree:outline-primary/40 group-focus-within/tree:hover:bg-primary/15"
+                            ? "outline -outline-offset-1 outline-border text-foreground bg-muted group-focus-within/tree:bg-primary/15 group-focus-within/tree:outline-primary/40 group-focus-within/tree:hover:bg-primary/15"
                             : "outline-none",
                         (isDragged || isCut) && "opacity-50",
                     )}
