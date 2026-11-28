@@ -110,7 +110,7 @@ function Item_InList({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
     return (
         <BookmarkContextMenu id={id} scope="items">
             <div
-                className={classNames("px-2 py-1.5 hover:bg-muted rounded-sm flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none", (isDragged || isCut) && "opacity-50")}
+                className={classNames("px-2 py-1.5 hover:bg-muted flex items-center gap-3 cursor-default", isSelected ? selectedItemClass : "outline-none", (isDragged || isCut) && "opacity-50")}
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 data-dnd-target="row"
@@ -178,7 +178,7 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
                 tabIndex={-1}
                 ref={revealWhenSelected(isSelected)}
                 className={classNames(
-                    "p-2 text-center hover:bg-muted border border-transparent rounded-md flex flex-col items-center gap-2 cursor-default",
+                    "p-2 text-center hover:bg-muted flex flex-col items-center gap-2 cursor-default",
                     isSelected ? selectedItemClass : "outline-none",
                     (isDragged || isCut) && "opacity-50",
                 )}
@@ -206,9 +206,10 @@ function Item_InGrid({ id, showUrl }: { id: BookmarkId; showUrl: boolean; }) {
 
 /**
  * Selected row or card. Light gray with a darker outline while the items panel does not have focus; blue with a
- * blue outline while it does. Both panels use the same look (see `group/tree` in the tree panel).
+ * blue outline while it does. Both panels use the same look (see `group/tree` in the tree panel). The outline is inset
+ * by 1px, so it stays inside the item and never overlaps a neighbour's hover background. Items have no rounded corners.
  */
-const selectedItemClass = "outline outline-border bg-muted group-focus-within/items:bg-primary/15 group-focus-within/items:outline-primary/40 group-focus-within/items:hover:bg-primary/15";
+const selectedItemClass = "outline -outline-offset-1 outline-border bg-muted group-focus-within/items:bg-primary/15 group-focus-within/items:outline-primary/40 group-focus-within/items:hover:bg-primary/15";
 
 /** Double-click opens a link in a new tab, or opens a folder to show its contents. Single click only selects. */
 function openItem(node: BookmarkNode, openFolder: (id: BookmarkId) => void) {
